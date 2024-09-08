@@ -16,7 +16,6 @@ import java.util.Map;
 @RequestMapping("/films")
 public class FilmController {
     private final static Logger log = LoggerFactory.getLogger(FilmController.class);
-
     private final Map<Long, Film> films = new HashMap<>();
 
     @GetMapping
@@ -34,38 +33,31 @@ public class FilmController {
     }
 
     @PutMapping
-    public Film update(@RequestBody Film updateFilm) {
-        Film oldFilm = new Film();
-        try {
-            if (updateFilm.getId() == null) {
-                throw new ValidationException("Введите id");
-            }
-            checkFilm(updateFilm);
-            if (films.containsKey(updateFilm.getId())) {
-                oldFilm = films.get(updateFilm.getId());
-                if (!(updateFilm.getDescription() == null || updateFilm.getDescription().isBlank())) {
-                    oldFilm.setDescription(updateFilm.getDescription());
-                    log.info("Описание обновлено");
-                }
-                if (!(updateFilm.getReleaseDate() == null)) {
-                    oldFilm.setReleaseDate(updateFilm.getReleaseDate());
-                    log.info("Дата обновлена");
-                }
-                if (!(updateFilm.getDuration() == null)) {
-                    oldFilm.setDuration(updateFilm.getDuration());
-                    log.info("Продолжительность фильма обновлена");
-                }
-                oldFilm.setName(updateFilm.getName());
-                log.info("Название фильма обновлено");
-                return oldFilm;
-            }
-            throw new NotFoundException("Фильм с id = " + updateFilm.getId() + " не найден");
-        } catch (ValidationException e) {
-            log.error("Ошибка в вводе данных фильма. ", e);
-        } catch (NotFoundException e) {
-            log.error("Фильм не найден. ", e);
+    public Film update(@RequestBody Film updateFilm) throws ValidationException, NotFoundException {
+        Film oldFilm;
+        if (updateFilm.getId() == null) {
+            throw new ValidationException("Введите id");
         }
-        return oldFilm;
+        checkFilm(updateFilm);
+        if (films.containsKey(updateFilm.getId())) {
+            oldFilm = films.get(updateFilm.getId());
+            if (!(updateFilm.getDescription() == null || updateFilm.getDescription().isBlank())) {
+                oldFilm.setDescription(updateFilm.getDescription());
+                log.info("Описание обновлено");
+            }
+            if (!(updateFilm.getReleaseDate() == null)) {
+                oldFilm.setReleaseDate(updateFilm.getReleaseDate());
+                log.info("Дата обновлена");
+            }
+            if (!(updateFilm.getDuration() == null)) {
+                oldFilm.setDuration(updateFilm.getDuration());
+                log.info("Продолжительность фильма обновлена");
+            }
+            oldFilm.setName(updateFilm.getName());
+            log.info("Название фильма обновлено");
+            return oldFilm;
+        }
+        throw new NotFoundException("Фильм с id = " + updateFilm.getId() + " не найден");
     }
 
     private long getNextId() {
@@ -87,7 +79,7 @@ public class FilmController {
         if (film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
             throw new ValidationException("Дата выхода фильма должен быть не ранее 28.12.1895");
         }
-        if (film.getDuration().isNegative()) {
+        if (film.getDuration() < 0) {
             throw new ValidationException("Продолжительность должна быть положительной");
         }
     }

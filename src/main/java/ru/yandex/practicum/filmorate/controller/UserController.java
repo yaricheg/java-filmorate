@@ -16,7 +16,6 @@ import java.util.Map;
 @RequestMapping("/users")
 public class UserController {
     private final static Logger log = LoggerFactory.getLogger(FilmController.class);
-
     private final Map<Long, User> users = new HashMap<>();
 
     @GetMapping
@@ -35,31 +34,24 @@ public class UserController {
 
     @PutMapping
     public User update(@RequestBody User updateUser) throws NotFoundException {
-        User oldUser = new User();
-        try {
-            if (updateUser.getId() == null) {
-                throw new ValidationException("Введите id");
-            }
-            checkUser(updateUser);
-            if (users.containsKey(updateUser.getId())) {
-                oldUser = users.get(updateUser.getId());
-                oldUser.setEmail(updateUser.getEmail());
-                log.info("Email обновлен");
-                oldUser.setLogin(updateUser.getLogin());
-                log.info("Логин обновлен");
-                oldUser.setName(updateUser.getName());
-                log.info("Имя обновлено");
-                oldUser.setBirthday(updateUser.getBirthday());
-                log.info("Дата Рождения обновлена");
-                return oldUser;
-            }
-            throw new NotFoundException("Пользователь с id = " + updateUser.getId() + " не найден");
-        } catch (ValidationException e) {
-            log.error("Ошибка в вводе данных пользователя. ", e);
-        } catch (NotFoundException e) {
-            log.error("Пользователь не найден. ", e);
+        User oldUser;
+        if (updateUser.getId() == null) {
+            throw new ValidationException("Введите id");
         }
-        return oldUser;
+        checkUser(updateUser);
+        if (users.containsKey(updateUser.getId())) {
+            oldUser = users.get(updateUser.getId());
+            oldUser.setEmail(updateUser.getEmail());
+            log.info("Email обновлен");
+            oldUser.setLogin(updateUser.getLogin());
+            log.info("Логин обновлен");
+            oldUser.setName(updateUser.getName());
+            log.info("Имя обновлено");
+            oldUser.setBirthday(updateUser.getBirthday());
+            log.info("Дата Рождения обновлена");
+            return oldUser;
+        }
+        throw new NotFoundException("Пользователь с id = " + updateUser.getId() + " не найден");
     }
 
     private long getNextId() {
@@ -75,13 +67,8 @@ public class UserController {
         if (user.getEmail() == null || user.getEmail().isBlank() || !(user.getEmail().contains("@"))) {
             throw new ValidationException("Электронная почта не может быть пустой и должна содержать символ @");
         }
-        if (user.getLogin() == null || user.getLogin().isBlank() || !(user.getLogin().contains(" "))) {
-            throw new ValidationException("Логин не может быть пустым и содержать пробелы");
-        }
-        if (user.getName() == null & (user.getLogin() == null
-                || user.getLogin().isBlank() || !(user.getLogin().contains(" ")))) {
-            throw new ValidationException("Имя для отображения может быть пустым — " +
-                    "в таком случае будет использован логин");
+        if (user.getName() == null || user.getName().isBlank()) {
+            user.setName(user.getLogin());
         }
         if (user.getBirthday().isAfter(LocalDate.now())) {
             throw new ValidationException("Дата рождения не может быть в будущем");
