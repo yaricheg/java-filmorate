@@ -19,7 +19,7 @@ public class Film {
     public Film(Long id, String name, String description, LocalDate releaseDate, Integer duration) {
         this.id = id;
         this.name = name;
-        this.description = Optional.ofNullable(description) ;
+        this.description = Optional.ofNullable(description);
         this.releaseDate = Optional.ofNullable(releaseDate);
         this.duration = Optional.ofNullable(duration);
     }
