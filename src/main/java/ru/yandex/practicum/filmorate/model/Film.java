@@ -1,14 +1,26 @@
 package ru.yandex.practicum.filmorate.model;
 
-import lombok.Data;
+import lombok.*;
 
 import java.time.LocalDate;
+import java.util.Optional;
 
-@Data
-public  class Film {
+@Getter
+@Setter
+@ToString
+@EqualsAndHashCode
+public class Film {
     private Long id;
     private String name;
-    private String description;
-    private LocalDate releaseDate;
-    private Integer duration;
+    private Optional<String> description;
+    private Optional<LocalDate> releaseDate;
+    private Optional<Integer> duration;
+
+    public Film(Long id, String name, String description, LocalDate releaseDate, Integer duration) {
+        this.id = id;
+        this.name = name;
+        this.description = Optional.ofNullable(description) ;
+        this.releaseDate = Optional.ofNullable(releaseDate);
+        this.duration = Optional.ofNullable(duration);
+    }
 }

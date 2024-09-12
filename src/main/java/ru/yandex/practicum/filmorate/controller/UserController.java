@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.Exception.NotFoundException;
 import ru.yandex.practicum.filmorate.Exception.ValidationException;
@@ -11,11 +10,12 @@ import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/users")
+@Slf4j
 public class UserController {
-    private static final Logger log = LoggerFactory.getLogger(UserController.class);
     private final Map<Long, User> users = new HashMap<>();
 
     @GetMapping
@@ -67,10 +67,10 @@ public class UserController {
         if (user.getEmail() == null || user.getEmail().isBlank() || !(user.getEmail().contains("@"))) {
             throw new ValidationException("Электронная почта не может быть пустой и должна содержать символ @");
         }
-        if (user.getName() == null || user.getName().isBlank()) {
-            user.setName(user.getLogin());
+        if (user.getName().isEmpty()) {
+            user.setName(Optional.of(user.getLogin()));
         }
-        if (user.getBirthday().isAfter(LocalDate.now())) {
+        if (user.getBirthday().get().isAfter(LocalDate.now())) {
             throw new ValidationException("Дата рождения не может быть в будущем");
         }
     }

@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.Exception.NotFoundException;
 import ru.yandex.practicum.filmorate.Exception.ValidationException;
@@ -14,9 +13,11 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/films")
+@Slf4j
 public class FilmController {
-    private static final Logger log = LoggerFactory.getLogger(FilmController.class);
     private final Map<Long, Film> films = new HashMap<>();
+    private static final Integer LENGTHDESCRIPTION = 200;
+    private static final LocalDate FIRSTDATEFILMS = LocalDate.of(1895, 12, 28);
 
     @GetMapping
     public Collection<Film> findAll() {
@@ -41,15 +42,15 @@ public class FilmController {
         checkFilm(updateFilm);
         if (films.containsKey(updateFilm.getId())) {
             oldFilm = films.get(updateFilm.getId());
-            if (!(updateFilm.getDescription() == null || updateFilm.getDescription().isBlank())) {
+            if (!(updateFilm.getDescription().isEmpty())) {
                 oldFilm.setDescription(updateFilm.getDescription());
                 log.info("Описание обновлено");
             }
-            if (!(updateFilm.getReleaseDate() == null)) {
+            if (!(updateFilm.getReleaseDate().isEmpty())) {
                 oldFilm.setReleaseDate(updateFilm.getReleaseDate());
                 log.info("Дата обновлена");
             }
-            if (!(updateFilm.getDuration() == null)) {
+            if (!(updateFilm.getDuration().isEmpty())) {
                 oldFilm.setDuration(updateFilm.getDuration());
                 log.info("Продолжительность фильма обновлена");
             }
@@ -73,13 +74,13 @@ public class FilmController {
         if (film.getName() == null || film.getName().isBlank()) {
             throw new ValidationException("Название фильма не может быть пустым");
         }
-        if (film.getDescription().length() > 200) {
+        if (film.getDescription().get().length() > LENGTHDESCRIPTION) {
             throw new ValidationException("Длина описания должна быть меньше 200 символов");
         }
-        if (film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
+        if (film.getReleaseDate().get().isBefore(FIRSTDATEFILMS)) {
             throw new ValidationException("Дата выхода фильма должен быть не ранее 28.12.1895");
         }
-        if (film.getDuration() < 0) {
+        if (film.getDuration().get() < 0) {
             throw new ValidationException("Продолжительность должна быть положительной");
         }
     }
