@@ -5,12 +5,11 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.Exception.NotFoundException;
 import ru.yandex.practicum.filmorate.Exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
-
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
+
 
 @RestController
 @RequestMapping("/users")
@@ -35,9 +34,7 @@ public class UserController {
     @PutMapping
     public User update(@RequestBody User updateUser) throws NotFoundException {
         User oldUser;
-        if (updateUser.getId() == null) {
-            throw new ValidationException("Введите id");
-        }
+        checkNullUser(updateUser);
         checkUser(updateUser);
         if (users.containsKey(updateUser.getId())) {
             oldUser = users.get(updateUser.getId());
@@ -67,11 +64,26 @@ public class UserController {
         if (user.getEmail() == null || user.getEmail().isBlank() || !(user.getEmail().contains("@"))) {
             throw new ValidationException("Электронная почта не может быть пустой и должна содержать символ @");
         }
-        if (user.getName().isEmpty()) {
-            user.setName(Optional.of(user.getLogin()));
+        if (user.getName() == null || user.getName().isBlank()) {
+            user.setName(user.getLogin());
         }
-        if (user.getBirthday().get().isAfter(LocalDate.now())) {
+        if (user.getBirthday().isAfter(LocalDate.now())) {
             throw new ValidationException("Дата рождения не может быть в будущем");
+        }
+    }
+
+    private void checkNullUser(User user) {
+        if (user.getEmail() == null) {
+            throw new NullPointerException("Значение null в поле электронной почты");
+        }
+        if (user.getName() == null) {
+            throw new NullPointerException("Значение null в поле имени пользователя");
+        }
+        if (user.getLogin() == null) {
+            throw new NullPointerException("Значение null в поле логина");
+        }
+        if (user.getBirthday() == null) {
+            throw new NullPointerException("Значение null в поле даты рождения");
         }
     }
 }
