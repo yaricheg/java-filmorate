@@ -67,7 +67,7 @@ public class UserController {
     }
 
     @GetMapping("/{id}/friends")
-    public Set<Long> UserFriends(@PathVariable long id) {
+    public Collection userFriends(@PathVariable long id) {
         if (!(userStorage.getUsers().containsKey(id))) {
             throw new NotFoundException("Пользователь с id = " + id + " не найден");
         }
