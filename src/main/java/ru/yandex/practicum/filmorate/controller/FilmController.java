@@ -1,71 +1,99 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.Exception.NotFoundException;
-import ru.yandex.practicum.filmorate.Exception.ValidationException;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.film.FilmService;
+import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.users.UserStorage;
+
 import java.time.LocalDate;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
+import java.util.Set;
 
+@AllArgsConstructor
 @RestController
 @RequestMapping("/films")
 @Slf4j
 public class FilmController {
-    private final Map<Long, Film> films = new HashMap<>();
+    private FilmStorage filmStorage;
+    private FilmService filmService;
+    private UserStorage userStorage;
     private static final Integer LENGTH_DESCRIPTION = 200;
     private static final LocalDate FIRST_DATE_FILMS = LocalDate.of(1895, 12, 28);
 
     @GetMapping
     public Collection<Film> findAll() {
-        return films.values();
+        log.debug("Просмотр всех фильмов");
+        return filmStorage.getAll();
     }
 
     @PostMapping
     public Film create(@RequestBody Film film) {
         checkFilm(film);
-        film.setId(getNextId());
-        films.put(film.getId(), film);
-        log.info("Пользователь добавил новый фильм {}.", film);
+        filmStorage.save(film);
+        log.info("Добавлен новый фильм {}.", film);
         return film;
     }
 
     @PutMapping
-    public Film update(@RequestBody Film updateFilm) throws ValidationException, NotFoundException {
-        Film oldFilm;
-        checkNullFilm(updateFilm);
-        checkFilm(updateFilm);
-        if (films.containsKey(updateFilm.getId())) {
-            oldFilm = films.get(updateFilm.getId());
-            if (!(updateFilm.getDescription() == null || updateFilm.getDescription().isBlank())) {
-                oldFilm.setDescription(updateFilm.getDescription());
-                log.info("Описание обновлено");
-            }
-            if (!(updateFilm.getReleaseDate() == null)) {
-                oldFilm.setReleaseDate(updateFilm.getReleaseDate());
-                log.info("Дата обновлена");
-            }
-            if (!(updateFilm.getDuration() == null)) {
-                oldFilm.setDuration(updateFilm.getDuration());
-                log.info("Продолжительность фильма обновлена");
-            }
-            oldFilm.setName(updateFilm.getName());
-            log.info("Название фильма обновлено");
-            return oldFilm;
+    public Film update(@RequestBody Film updateFilm) {
+        if (filmStorage.getFilms().containsKey(updateFilm.getId())) {
+            checkNullFilm(updateFilm);
+            checkFilm(updateFilm);
+            Film correctFilm = filmStorage.update(updateFilm);
+            log.info("Обновлен фильм.", correctFilm);
+            return correctFilm;
         }
         throw new NotFoundException("Фильм с id = " + updateFilm.getId() + " не найден");
     }
 
-    private long getNextId() {
-        long currentMaxId = films.keySet()
-                .stream()
-                .mapToLong(id -> id)
-                .max()
-                .orElse(0);
-        return ++currentMaxId;
+    @DeleteMapping
+    public void delete(@RequestBody Film deleteFilm) {
+        filmStorage.deleteFilm(deleteFilm);
+        log.info("Удален фильм.", deleteFilm);
     }
+
+    @PutMapping("/{id}/like/{userId}")
+    public void addLike(@PathVariable Long id, @PathVariable Long userId) {
+        if (!filmStorage.getFilms().containsKey(id)) {
+            throw new NotFoundException("Фильм с id = " + id + " не найден");
+
+        }
+        if (!userStorage.getUsers().containsKey(userId)) {
+            throw new NotFoundException("Пользователь с id = " + id + " не найден");
+        }
+        filmService.addLike(id, userId);
+        log.info("Пользователь {} поставил лайк фильму {}.", userId, id);
+
+    }
+
+    @DeleteMapping("/{id}/like/{userId}")
+    public void deleteLike(@PathVariable Long id, @PathVariable Long userId) {
+        if (!filmStorage.getFilms().containsKey(id)) {
+            throw new NotFoundException("Фильм с id = " + id + " не найден");
+
+        }
+        if (!userStorage.getUsers().containsKey(userId)) {
+            throw new NotFoundException("Пользователь с id = " + id + " не найден");
+        }
+        filmService.deleteLike(id, userId);
+        log.info("Пользователь {} удалил лайк фильму {}.", userId, id);
+    }
+
+    @GetMapping("/popular")
+    public Collection<Film> topFilms(@RequestParam(defaultValue = "10") Integer count) {
+        if (count <= 0) {
+            throw new ValidationException("Значение size должно быть больше нуля");
+        }
+        return filmService.topFilms(count);
+    }
+
 
     private void checkFilm(Film film) {
         if (film.getName() == null || film.getName().isBlank()) {
