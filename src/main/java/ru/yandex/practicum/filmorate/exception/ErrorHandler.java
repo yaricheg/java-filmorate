@@ -21,12 +21,6 @@ public class ErrorHandler {
         return new ErrorResponse(e.getMessage());
     }
 
-   /* @ExceptionHandler
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ErrorResponse UnauthorizedUserException(final UnauthorizedUserException e) {
-        return new ErrorResponse(e.getMessage());
-    }*/
-
     class ErrorResponse {
         String error;
 
