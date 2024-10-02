@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.model;
 
 import lombok.*;
+
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
@@ -14,11 +15,11 @@ public class Film {
     private Integer duration;
     private Set<Long> likes = new HashSet<>();
 
-    public void addLike(Long id){
+    public void addLike(Long id) {
         likes.add(id);
     }
 
-    public void deleteLike(Long id){
+    public void deleteLike(Long id) {
         likes.remove(id);
     }
 

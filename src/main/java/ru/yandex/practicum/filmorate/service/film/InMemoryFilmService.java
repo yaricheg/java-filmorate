@@ -2,7 +2,6 @@ package ru.yandex.practicum.filmorate.service.film;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
@@ -25,7 +24,6 @@ public class InMemoryFilmService implements FilmService {
     public void deleteLike(Long idFilm, Long idUser) {
         filmStorage.getFilms().get(idFilm).deleteLike(idUser);
     }
-
 
     public Collection<Film> topFilms(Integer count) {
         return filmStorage.getFilms().values().stream()

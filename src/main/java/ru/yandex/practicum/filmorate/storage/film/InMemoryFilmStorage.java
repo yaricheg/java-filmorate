@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.storage.film;
 
 import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.PutMapping;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
@@ -17,7 +16,7 @@ import java.util.Map;
 @AllArgsConstructor
 @Component
 @Slf4j
-public class InMemoryFilmStorage implements FilmStorage{
+public class InMemoryFilmStorage implements FilmStorage {
 
     private final HashMap<Long, Film> films = new HashMap();
 
@@ -57,9 +56,10 @@ public class InMemoryFilmStorage implements FilmStorage{
         throw new NotFoundException("Фильм с id = " + updateFilm.getId() + " не найден");
     }
 
-    public void deleteFilm(Film film){
+    public void deleteFilm(Film film) {
         films.remove(film.getId());
     }
+
     public Map<Long, Film> getFilms() {
         return films;
     }
