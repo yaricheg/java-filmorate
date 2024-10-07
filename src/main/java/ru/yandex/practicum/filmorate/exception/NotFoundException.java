@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.Exception;
+package ru.yandex.practicum.filmorate.exception;
 
 public class NotFoundException extends RuntimeException {
     public NotFoundException(String message) {
