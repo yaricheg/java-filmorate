@@ -5,9 +5,9 @@ import ru.yandex.practicum.filmorate.model.Film;
 import java.util.Collection;
 
 public interface FilmService {
-    void addLike(Long film, Long user);
+    void addLike(Integer film, Integer user);
 
-    void deleteLike(Long film, Long user);
+    void deleteLike(Integer film, Integer user);
 
     Collection<Film> topFilms(Integer count);
 }

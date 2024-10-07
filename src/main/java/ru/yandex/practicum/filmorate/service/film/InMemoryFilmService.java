@@ -16,12 +16,12 @@ public class InMemoryFilmService implements FilmService {
     private FilmStorage filmStorage;
 
     @Override
-    public void addLike(Long idFilm, Long idUser) {
+    public void addLike(Integer idFilm, Integer idUser) {
         filmStorage.getFilms().get(idFilm).addLike(idUser);
     }
 
     @Override
-    public void deleteLike(Long idFilm, Long idUser) {
+    public void deleteLike(Integer idFilm, Integer idUser) {
         filmStorage.getFilms().get(idFilm).deleteLike(idUser);
     }
 

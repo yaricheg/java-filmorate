@@ -58,7 +58,7 @@ public class FilmController {
     }
 
     @PutMapping("/{id}/like/{userId}")
-    public void addLike(@PathVariable Long id, @PathVariable Long userId) {
+    public void addLike(@PathVariable Integer id, @PathVariable Integer userId) {
         if (!filmStorage.getFilms().containsKey(id)) {
             throw new NotFoundException("Фильм с id = " + id + " не найден");
 
@@ -72,7 +72,7 @@ public class FilmController {
     }
 
     @DeleteMapping("/{id}/like/{userId}")
-    public void deleteLike(@PathVariable Long id, @PathVariable Long userId) {
+    public void deleteLike(@PathVariable Integer id, @PathVariable Integer userId) {
         if (!filmStorage.getFilms().containsKey(id)) {
             throw new NotFoundException("Фильм с id = " + id + " не найден");
 

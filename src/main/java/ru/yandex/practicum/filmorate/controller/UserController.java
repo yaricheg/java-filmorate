@@ -48,16 +48,17 @@ public class UserController {
     }
 
     @PutMapping("/{id}/friends/{friend_id}")
-    public User addFriend(@PathVariable Long id, @PathVariable("friend_id") Long friendId) {
+    public User addFriend(@PathVariable("id") Integer id, @PathVariable("friend_id") Integer friendId) {
         if (!(userStorage.getUsers().containsKey(id)) ||
                 !(userStorage.getUsers().containsKey(friendId))) {
             throw new NotFoundException("Пользователь с id = " + id + " не найден");
         }
         return userService.addFriend(id, friendId);
+
     }
 
     @DeleteMapping("/{id}/friends/{friend_id}")
-    public void deleteFriend(@PathVariable Long id, @PathVariable("friend_id") Long friendId) {
+    public void deleteFriend(@PathVariable Integer id, @PathVariable("friend_id") Integer friendId) {
         if (!(userStorage.getUsers().containsKey(id)) ||
                 !(userStorage.getUsers().containsKey(friendId))) {
             throw new NotFoundException("Пользователь с id = " + id + " не найден");
@@ -66,16 +67,16 @@ public class UserController {
     }
 
     @GetMapping("/{id}/friends")
-    public Collection userFriends(@PathVariable long id) {
+    public Collection<User> userFriends(@PathVariable Integer id) {
         if (!(userStorage.getUsers().containsKey(id))) {
             throw new NotFoundException("Пользователь с id = " + id + " не найден");
         }
-        return userStorage.getUsers().get(id).getFriends();
+        return userStorage.getUserFriends(id);
     }
 
 
     @GetMapping("/{id}/friends/common/{otherId}")
-    public Collection findCommonFriends(@PathVariable long id, @PathVariable long otherId) {
+    public Collection<User> findCommonFriends(@PathVariable Integer id, @PathVariable Integer otherId) {
         return userService.commonFriends(id, otherId);
     }
 

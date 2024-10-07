@@ -8,18 +8,18 @@ import java.util.Set;
 
 @Data
 public class Film {
-    private Long id;
+    private Integer id;
     private String name;
     private String description;
     private LocalDate releaseDate;
     private Integer duration;
-    private Set<Long> likes = new HashSet<>();
+    private Set<Integer> likes = new HashSet<>();
 
-    public void addLike(Long id) {
+    public void addLike(Integer id) {
         likes.add(id);
     }
 
-    public void deleteLike(Long id) {
+    public void deleteLike(Integer id) {
         likes.remove(id);
     }
 

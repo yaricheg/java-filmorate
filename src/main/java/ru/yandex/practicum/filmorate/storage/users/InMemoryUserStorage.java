@@ -4,9 +4,8 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -14,7 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @AllArgsConstructor
 public class InMemoryUserStorage implements UserStorage {
-    private final Map<Long, User> users = new HashMap<>();
+    private final Map<Integer, User> users = new HashMap<>();
 
     @Override
     public User create(User user) {
@@ -34,6 +33,8 @@ public class InMemoryUserStorage implements UserStorage {
         log.info("Имя обновлено");
         oldUser.setBirthday(updateUser.getBirthday());
         log.info("Дата Рождения обновлена");
+        oldUser.setFriends(updateUser.getFriends());
+        log.info("Друзья обновлены");
         users.put(oldUser.getId(), oldUser);
         return oldUser;
     }
@@ -44,23 +45,34 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public Map<Long, User> getUsers() {
+    public Map<Integer, User> getUsers() {
         return users;
     }
 
+
     @Override
-    public User getUserById(Long id) {
+    public User getUserById(Integer id) {
         return users.get(id);
     }
 
+    @Override
     public void deleteUser(User user) {
         users.remove(user.getId());
     }
 
-    private long getNextId() {
-        long currentMaxId = users.keySet()
+    @Override
+    public Collection<User> getUserFriends(Integer userId) {
+        Set<User> friends = new HashSet<>();
+        for (Integer id : users.get(userId).getFriends()) {
+            friends.add(users.get(id));
+        }
+        return friends;
+    }
+
+    private Integer getNextId() {
+        Integer currentMaxId = users.keySet()
                 .stream()
-                .mapToLong(id -> id)
+                .mapToInt(id -> id)
                 .max()
                 .orElse(0);
         return ++currentMaxId;

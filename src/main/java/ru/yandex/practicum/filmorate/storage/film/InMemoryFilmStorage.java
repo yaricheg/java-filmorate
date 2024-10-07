@@ -18,7 +18,7 @@ import java.util.Map;
 @Slf4j
 public class InMemoryFilmStorage implements FilmStorage {
 
-    private final HashMap<Long, Film> films = new HashMap();
+    private final HashMap<Integer, Film> films = new HashMap();
 
     @Override
     public Collection<Film> getAll() {
@@ -60,14 +60,14 @@ public class InMemoryFilmStorage implements FilmStorage {
         films.remove(film.getId());
     }
 
-    public Map<Long, Film> getFilms() {
+    public Map<Integer, Film> getFilms() {
         return films;
     }
 
-    private long getNextId() {
-        long currentMaxId = films.keySet()
+    private Integer getNextId() {
+        Integer currentMaxId = films.keySet()
                 .stream()
-                .mapToLong(id -> id)
+                .mapToInt(id -> id)
                 .max()
                 .orElse(0);
         return ++currentMaxId;

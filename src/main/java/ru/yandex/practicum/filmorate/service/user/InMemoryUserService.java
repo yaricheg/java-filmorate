@@ -14,26 +14,32 @@ public class InMemoryUserService implements UserService {
     private UserStorage userStorage;
 
     @Override
-    public User addFriend(long userId, long friendId) {
-        userStorage.getUserById(userId).addFriendUser(friendId);
-        userStorage.getUserById(friendId).addFriendUser(userId);
-        return userStorage.getUserById(userId);
+    public User addFriend(Integer userId, Integer friendId) {
+        User user = userStorage.getUserById(userId);
+        User friend = userStorage.getUserById(friendId);
+        friend.getFriends().add(userId);
+        user.getFriends().add(friendId);
+        return user;
     }
 
     @Override
-    public void deleteFriend(long userId, long friendId) {
-        userStorage.getUsers().get(userId).deleteFriendUser(friendId);
-        userStorage.getUsers().get(friendId).deleteFriendUser(userId);
+    public User deleteFriend(Integer userId, Integer friendId) {
+        User user = userStorage.getUserById(userId);
+        User friend = userStorage.getUserById(friendId);
+        user.getFriends().remove(friendId);
+        friend.getFriends().remove(userId);
+        return friend;
     }
 
     @Override
-    public Collection commonFriends(long userId, long otherId) {
-        Collection commonFriends = new HashSet<>();
-        for (long idUserFriend : userStorage.getUserById(userId).getFriends()) {
+    public Collection<User> commonFriends(Integer userId, Integer otherId) {
+        Collection<User> commonFriends = new HashSet<>();
+        for (Integer idUserFriend : userStorage.getUserById(userId).getFriends()) {
             if (userStorage.getUserById(otherId).getFriends().contains(idUserFriend)) {
-                commonFriends.add(idUserFriend);
+                commonFriends.add(userStorage.getUserById(idUserFriend));
             }
         }
+
         return commonFriends;
     }
 }

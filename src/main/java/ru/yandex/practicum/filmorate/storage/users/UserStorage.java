@@ -14,7 +14,9 @@ public interface UserStorage {
 
     void deleteUser(User user);
 
-    Map<Long, User> getUsers();
+    public Collection<User> getUserFriends(Integer userId);
 
-    User getUserById(Long id);
+    Map<Integer, User> getUsers();
+
+    User getUserById(Integer id);
 }

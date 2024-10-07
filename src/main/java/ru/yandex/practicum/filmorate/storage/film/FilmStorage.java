@@ -15,7 +15,7 @@ public interface FilmStorage {
 
     void deleteFilm(Film film);
 
-    Map<Long, Film> getFilms();
+    Map<Integer, Film> getFilms();
 
 
 }
