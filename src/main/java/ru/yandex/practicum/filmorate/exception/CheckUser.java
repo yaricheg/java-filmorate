@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.exception;
 
 import ru.yandex.practicum.filmorate.model.User;
-
 import java.time.LocalDate;
 
 public class CheckUser {

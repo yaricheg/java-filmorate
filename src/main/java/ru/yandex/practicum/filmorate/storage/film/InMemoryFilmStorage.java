@@ -1,6 +1,6 @@
 package ru.yandex.practicum.filmorate.storage.film;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.PutMapping;
 import ru.yandex.practicum.filmorate.exception.CheckFilm;
@@ -11,7 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.HashMap;
 import java.util.Map;
 
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Component
 @Slf4j
 public class InMemoryFilmStorage implements FilmStorage {
