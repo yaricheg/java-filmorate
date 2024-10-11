@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.storage.film;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.PutMapping;
+import ru.yandex.practicum.filmorate.exception.CheckFilm;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -17,16 +18,16 @@ import java.util.Map;
 @Component
 @Slf4j
 public class InMemoryFilmStorage implements FilmStorage {
+    private final CheckFilm checkFilm = new CheckFilm();
 
     private final HashMap<Integer, Film> films = new HashMap();
 
     @Override
-    public Collection<Film> getAll() {
-        return films.values();
-    }
-
-    @Override
     public Film save(Film film) {
+        if (film == null) {
+            throw new NullPointerException("Фильм равен null");
+        }
+        checkFilm.checkFilm(film);
         film.setId(getNextId());
         films.put(film.getId(), film);
         return film;
@@ -34,33 +35,27 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @PutMapping
     public Film update(Film updateFilm) throws ValidationException, NotFoundException {
-        Film oldFilm;
+        if (updateFilm == null) {
+            throw new NullPointerException("Обновленный фильм равен null");
+        }
         if (films.containsKey(updateFilm.getId())) {
-            oldFilm = films.get(updateFilm.getId());
-            if (!(updateFilm.getDescription() == null || updateFilm.getDescription().isBlank())) {
-                oldFilm.setDescription(updateFilm.getDescription());
-                log.info("Описание обновлено");
-            }
-            if (!(updateFilm.getReleaseDate() == null)) {
-                oldFilm.setReleaseDate(updateFilm.getReleaseDate());
-                log.info("Дата обновлена");
-            }
-            if (!(updateFilm.getDuration() == null)) {
-                oldFilm.setDuration(updateFilm.getDuration());
-                log.info("Продолжительность фильма обновлена");
-            }
-            oldFilm.setName(updateFilm.getName());
-            log.info("Название фильма обновлено");
-            return oldFilm;
+            checkFilm.checkFilm(updateFilm);
+            films.put(updateFilm.getId(), updateFilm);
+            return films.get(updateFilm.getId());
         }
         throw new NotFoundException("Фильм с id = " + updateFilm.getId() + " не найден");
     }
 
-    public void deleteFilm(Film film) {
+
+    @Override
+    public void delete(Film film) {
         films.remove(film.getId());
     }
 
     public Map<Integer, Film> getFilms() {
+        if (films.values().contains(null)) {
+            throw new NullPointerException("Список фильмов содержит null");
+        }
         return films;
     }
 

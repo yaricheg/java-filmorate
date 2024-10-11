@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.storage.users;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.exception.*;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.*;
@@ -13,9 +14,14 @@ import lombok.extern.slf4j.Slf4j;
 @AllArgsConstructor
 public class InMemoryUserStorage implements UserStorage {
     private final Map<Integer, User> users = new HashMap<>();
+    private final CheckUser checkUser = new CheckUser();
 
     @Override
     public User create(User user) {
+        if (user == null) {
+            throw new NullPointerException("Пользователь равен null");
+        }
+        checkUser.checkUser(user);
         user.setId(getNextId());
         users.put(user.getId(), user);
         return user;
@@ -23,23 +29,23 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public User update(User updateUser) {
-        User oldUser = users.get(updateUser.getId());
-        oldUser.setEmail(updateUser.getEmail());
-        log.info("Email обновлен");
-        oldUser.setLogin(updateUser.getLogin());
-        log.info("Логин обновлен");
-        oldUser.setName(updateUser.getName());
-        log.info("Имя обновлено");
-        oldUser.setBirthday(updateUser.getBirthday());
-        log.info("Дата Рождения обновлена");
-        oldUser.setFriends(updateUser.getFriends());
-        log.info("Друзья обновлены");
-        users.put(oldUser.getId(), oldUser);
-        return oldUser;
+        if (updateUser == null) {
+            throw new NullPointerException("Обновленный пользователь равен null");
+        }
+        if (getUsers().containsKey(updateUser.getId())) {
+            checkUser.checkUser(updateUser);
+            users.put(updateUser.getId(), updateUser);
+            return users.get(updateUser.getId());
+        }
+        throw new NotFoundException("Пользователь с id = " + updateUser.getId() + " не найден");
+
     }
 
     @Override
     public Collection<User> getAll() {
+        if (users.values().contains(null)) {
+            throw new NullPointerException("Cписок пользователей содержит null");
+        }
         return users.values();
     }
 
@@ -59,14 +65,6 @@ public class InMemoryUserStorage implements UserStorage {
         users.remove(user.getId());
     }
 
-    @Override
-    public Collection<User> getUserFriends(Integer userId) {
-        Set<User> friends = new HashSet<>();
-        for (Integer id : users.get(userId).getFriends()) {
-            friends.add(users.get(id));
-        }
-        return friends;
-    }
 
     private Integer getNextId() {
         Integer currentMaxId = users.keySet()
