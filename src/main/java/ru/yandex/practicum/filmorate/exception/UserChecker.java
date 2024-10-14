@@ -1,10 +1,11 @@
 package ru.yandex.practicum.filmorate.exception;
 
 import ru.yandex.practicum.filmorate.model.User;
+
 import java.time.LocalDate;
 
-public class CheckUser {
-    public void checkUser(User user) {
+public class UserChecker {
+    public static void checkUser(User user) {
         if (user.getEmail() == null || user.getEmail().isBlank() || !(user.getEmail().contains("@"))) {
             throw new ValidationException("Электронная почта не может быть пустой и должна содержать символ @");
         }

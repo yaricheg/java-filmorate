@@ -2,9 +2,9 @@ package ru.yandex.practicum.filmorate.service.user;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.users.UserStorage;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -31,10 +31,6 @@ public class InMemoryUserService implements UserService {
 
     @Override
     public User addFriend(Integer userId, Integer friendId) {
-        if (!(userStorage.getUsers().containsKey(userId)) ||
-                !(userStorage.getUsers().containsKey(friendId))) {
-            throw new NotFoundException("Пользователь с id = " + userId + " или " + friendId + " не найден");
-        }
         User user = userStorage.getUserById(userId);
         User friend = userStorage.getUserById(friendId);
         friend.getFriends().add(userId);
@@ -44,10 +40,6 @@ public class InMemoryUserService implements UserService {
 
     @Override
     public User deleteFriend(Integer userId, Integer friendId) {
-        if (!(userStorage.getUsers().containsKey(userId)) ||
-                !(userStorage.getUsers().containsKey(friendId))) {
-            throw new NotFoundException("Пользователь с id = " + userId + " или " + friendId + " не найден");
-        }
         User user = userStorage.getUserById(userId);
         User friend = userStorage.getUserById(friendId);
         user.getFriends().remove(friendId);
@@ -57,9 +49,6 @@ public class InMemoryUserService implements UserService {
 
     @Override
     public Collection<User> userFriends(Integer id) {
-        if (!(userStorage.getUsers().containsKey(id))) {
-            throw new NotFoundException("Пользователь с id = " + id + " не найден");
-        }
         return userStorage.getUserById(id).getFriends().stream()
                 .map(friend -> userStorage.getUserById(friend))
                 .collect(Collectors.toList());

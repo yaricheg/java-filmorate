@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.controller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exception.UserChecker;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.user.UserService;
 
@@ -22,6 +23,7 @@ public class UserController {
 
     @PostMapping
     public User create(@RequestBody User user) {
+        UserChecker.checkUser(user);
         userService.createUser(user);
         log.info("Пользователь добавлен {}", user);
         return user;
@@ -29,6 +31,7 @@ public class UserController {
 
     @PutMapping
     public User update(@RequestBody User updateUser) {
+        UserChecker.checkUser(updateUser);
         userService.updateUser(updateUser);
         log.info("Пользователь обновлен {}", updateUser);
         return updateUser;

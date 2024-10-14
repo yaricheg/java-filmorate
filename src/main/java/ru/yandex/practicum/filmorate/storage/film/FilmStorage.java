@@ -1,7 +1,9 @@
 package ru.yandex.practicum.filmorate.storage.film;
 
 import ru.yandex.practicum.filmorate.model.Film;
-import java.util.Map;
+
+import java.util.Collection;
+
 
 public interface FilmStorage {
 
@@ -11,6 +13,8 @@ public interface FilmStorage {
 
     void delete(Film film);
 
-    Map<Integer, Film> getFilms();
+    Film getFilmById(Integer id);
+
+    Collection<Film> getFilms();
 
 }

@@ -3,6 +3,8 @@ package ru.yandex.practicum.filmorate.controller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exception.FilmChecker;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.film.FilmService;
 
@@ -23,6 +25,7 @@ public class FilmController {
 
     @PostMapping
     public Film create(@RequestBody Film film) {
+        FilmChecker.checkFilm(film);
         filmService.saveFilm(film);
         log.info("Добавлен новый фильм {}.", film);
         return film;
@@ -30,6 +33,7 @@ public class FilmController {
 
     @PutMapping
     public Film update(@RequestBody Film updateFilm) {
+        FilmChecker.checkFilm(updateFilm);
         Film correctFilm = filmService.updateFilm(updateFilm);
         log.info("Обновлен фильм.", correctFilm);
         return correctFilm;
@@ -55,6 +59,9 @@ public class FilmController {
 
     @GetMapping("/popular")
     public Collection<Film> topFilms(@RequestParam(defaultValue = "10") Integer count) {
+        if (count <= 0) {
+            throw new ValidationException("Значение size должно быть больше нуля");
+        }
         return filmService.topFilms(count);
     }
 

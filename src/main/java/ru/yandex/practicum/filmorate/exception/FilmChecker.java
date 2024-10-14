@@ -1,14 +1,15 @@
 package ru.yandex.practicum.filmorate.exception;
 
 import ru.yandex.practicum.filmorate.model.Film;
+
 import java.time.LocalDate;
 
-public class CheckFilm {
+public class FilmChecker {
 
     private static final Integer LENGTH_DESCRIPTION = 200;
     private static final LocalDate FIRST_DATE_FILMS = LocalDate.of(1895, 12, 28);
 
-    public void checkFilm(Film film) {
+    public static void checkFilm(Film film) {
         if (film.getName() == null || film.getName().isBlank()) {
             throw new ValidationException("Название фильма не может быть пустым");
         }
