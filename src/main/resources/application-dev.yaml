@@ -1,3 +1,4 @@
 spring:
   logging.level:
     org.zalando.logbook: TRACE  # настраиваем уровень логера
+

@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.storage.film;
+package ru.yandex.practicum.filmorate.dal.film;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -6,9 +6,13 @@ import org.springframework.web.bind.annotation.PutMapping;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import lombok.extern.slf4j.Slf4j;
+import ru.yandex.practicum.filmorate.model.Like;
+import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
+import java.util.stream.Collectors;
 
 
 @RequiredArgsConstructor
@@ -51,6 +55,8 @@ public class InMemoryFilmStorage implements FilmStorage {
         return films.values();
     }
 
+
+
     private Integer getNextId() {
         Integer currentMaxId = films.keySet()
                 .stream()
@@ -59,4 +65,32 @@ public class InMemoryFilmStorage implements FilmStorage {
                 .orElse(0);
         return ++currentMaxId;
     }
+
+    public Film addLike(Film film, User user) {
+        Like like = new Like(film.getId(), user.getId());
+        film.getLikes().add(like);
+        return film;
+    }
+
+    public void deleteLike(Film film, User user) {
+        List<Like> likes = film.getLikes();
+        for(Like like: likes){
+            if (like.getUserId() == user.getId()){
+                likes.remove(like);
+                film.setLikes(likes);
+                return;
+            }
+        }
+    }
+
+    @Override
+    public List<Film> getMostPopular(Integer count) {
+        return films.values().stream()
+                .filter(film -> film.getLikes() != null)
+                .filter(film -> !film.getLikes().isEmpty())
+                .sorted((f1, f2) -> f2.getLikes().size() - f1.getLikes().size())
+                .limit(count)
+                .collect(Collectors.toList());
+    }
+
 }

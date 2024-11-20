@@ -1,21 +1,24 @@
 package ru.yandex.practicum.filmorate.service.film;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.users.UserStorage;
+import ru.yandex.practicum.filmorate.dal.film.FilmStorage;
+import ru.yandex.practicum.filmorate.dal.users.UserStorage;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
-@Slf4j
+//@RequiredArgsConstructor
 public class InMemoryFilmService implements FilmService {
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
+
+    public InMemoryFilmService(@Qualifier("filmDbStorage") FilmStorage filmStorage,
+                               @Qualifier("UserDbStorage") UserStorage userStorage) {
+        this.filmStorage = filmStorage;
+        this.userStorage = userStorage;
+    }
 
     @Override
     public Film saveFilm(Film film) {
@@ -33,6 +36,12 @@ public class InMemoryFilmService implements FilmService {
     }
 
     @Override
+    public Film getFilmById(Integer id) {
+        return filmStorage.getFilmById(id);
+    }
+
+
+    @Override
     public void deleteFilm(Film film) {
         filmStorage.delete(film);
     }
@@ -40,21 +49,16 @@ public class InMemoryFilmService implements FilmService {
 
     @Override
     public void addLike(Integer idFilm, Integer idUser) {
-        filmStorage.getFilmById(idFilm).addLike(userStorage.getUserById(idUser).getId());
+        filmStorage.addLike(filmStorage.getFilmById(idFilm), userStorage.getUserById(idUser));
     }
 
     @Override
     public void deleteLike(Integer idFilm, Integer idUser) {
-        filmStorage.getFilmById(idFilm).deleteLike(userStorage.getUserById(idUser).getId());
+        filmStorage.deleteLike(filmStorage.getFilmById(idFilm), userStorage.getUserById(idUser));
     }
 
     public Collection<Film> topFilms(Integer count) {
-        return filmStorage.getFilms().stream()
-                .filter(film -> film.getLikes() != null)
-                .filter(film -> !film.getLikes().isEmpty())
-                .sorted((f1, f2) -> f2.getLikes().size() - f1.getLikes().size())
-                .limit(count)
-                .collect(Collectors.toList());
+        return filmStorage.getMostPopular(count);
     }
 }
 

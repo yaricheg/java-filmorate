@@ -7,6 +7,8 @@ import ru.yandex.practicum.filmorate.exception.FilmChecker;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.film.FilmService;
+import ru.yandex.practicum.filmorate.service.genre.GenreService;
+import ru.yandex.practicum.filmorate.service.mpa.MpaService;
 
 import java.util.Collection;
 
@@ -15,7 +17,10 @@ import java.util.Collection;
 @RequestMapping("/films")
 @Slf4j
 public class FilmController {
+
     private final FilmService filmService;
+    private final MpaService mpaService;
+    private final GenreService genreService;
 
     @GetMapping
     public Collection<Film> findAll() {
@@ -23,9 +28,18 @@ public class FilmController {
         return filmService.getAll();
     }
 
+    @GetMapping("/{id}")
+    public Film getFilm(@PathVariable Integer id) {
+        log.debug("Просмотр всех фильмов");
+        return filmService.getFilmById(id);
+    }
+
+
     @PostMapping
     public Film create(@RequestBody Film film) {
         FilmChecker.checkFilm(film);
+        mpaService.getMpaById(film.getMpa().getId());
+        //genreService.checkGenre(film.);
         filmService.saveFilm(film);
         log.info("Добавлен новый фильм {}.", film);
         return film;

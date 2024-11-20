@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.model;
 
-import lombok.*;
+import lombok.Data;
+
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
@@ -8,24 +9,23 @@ import java.util.Set;
 @Data
 public class User {
     private Integer id;
-
     private String email;
     private String login;
     private String name;
     private LocalDate birthday;
-    private Set<Integer> friends = new HashSet<>();
+    private Set<Integer> friends;
 
-    public void addFriendUser(Integer id) {
+    /*public void addFriendUser(Integer id) {
         friends.add(id);
     }
 
     public void deleteFriendUser(Integer id) {
         friends.remove(id);
-    }
+    }*/
 
-    public Set<Integer> setFriends(Set<Integer> newFriends) {
+   /* public Set<Integer> setFriends(Set<Integer> newFriends) {
         this.friends = newFriends;
         return friends;
-    }
+    }*/
 
 }

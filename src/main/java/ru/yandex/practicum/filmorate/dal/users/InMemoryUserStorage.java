@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.storage.users;
+package ru.yandex.practicum.filmorate.dal.users;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -6,6 +6,7 @@ import ru.yandex.practicum.filmorate.exception.*;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -33,6 +34,35 @@ public class InMemoryUserStorage implements UserStorage {
         }
         throw new NotFoundException("Пользователь с id = " + updateUser.getId() + " не найден");
 
+    }
+
+    @Override
+    public void addFriend(Integer userId, Integer friendId) {
+       users.get(userId).getFriends().add(friendId);
+       users.get(friendId).getFriends().add(userId);
+    }
+
+    @Override
+    public void deleteFriend(Integer userId, Integer friendId) {
+        users.get(userId).getFriends().remove(friendId);
+        users.get(friendId).getFriends().remove(userId);
+    }
+
+    @Override
+    public Collection<User> userFriends(Integer id) {
+       return users.get(id).getFriends().stream()
+                .map(friend -> users.get(friend))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public Collection commonFriends(Integer userId, Integer otherId) {
+        Set<Integer> userFriends = users.get(userId).getFriends();
+        Set<Integer> friendFriends = users.get(otherId).getFriends();
+        userFriends.retainAll(friendFriends);
+        return userFriends.stream()
+                .map(user -> users.get(userId))
+                .collect(Collectors.toList());
     }
 
     @Override
