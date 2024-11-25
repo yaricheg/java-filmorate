@@ -64,7 +64,7 @@ public class UserDbStorage implements UserStorage {
     }
 
     @Override
-    public User getUserById(Integer userId){
+    public User getUserById(Integer userId) {
         try {
             return jdbcTemplate.queryForObject(ALL_USERS.concat(" WHERE id = ?"), new UserRowMapper(), userId);
         } catch (Exception e) {

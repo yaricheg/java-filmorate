@@ -5,7 +5,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.dal.BaseRepository;
+import ru.yandex.practicum.filmorate.exception.DataException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.dal.filmGenre.FilmGenreStorage;
 import ru.yandex.practicum.filmorate.dal.likes.LikesStorage;
@@ -29,7 +31,8 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
             "WHERE id IN (SELECT film_id " +
             "FROM likes " +
             "GROUP BY film_id " +
-            "ORDER BY COUNT(user_id) DESC)";
+            "ORDER BY COUNT(user_id) DESC) " +
+            "LIMIT ? ";
 
 
     private final FilmGenreStorage filmGenreStorage;
@@ -48,20 +51,23 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
 
     @Override
     public Film save(Film film) {
-        if(mpaStorage.getMpaById(film.getMpa().getId()) == null){
-
+        try {
+            mpaStorage.getMpaById(film.getMpa().getId());
+            Integer id = Math.toIntExact(insert(
+                    INSERT_QUERY,
+                    film.getName(),
+                    film.getReleaseDate(),
+                    film.getDescription(),
+                    film.getDuration(),
+                    film.getMpa().getId(),
+                    film.getRate()
+            ));
+            film.setId(id);
+            return addFields(film);
+        } catch (NotFoundException e) {
+            throw new ValidationException("Введен неправильный id рейтинга");
         }
-        Integer id = Math.toIntExact(insert(
-                INSERT_QUERY,
-                film.getName(),
-                film.getReleaseDate(),
-                film.getDescription(),
-                film.getDuration(),
-                film.getMpa().getId(),
-                film.getRate()
-        ));
-        film.setId(id);
-        return addFields(film);
+
     }
 
     @Override
@@ -90,9 +96,8 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
         Optional<Film> optionalFilm = findOne(GET_ALL_QUERY.concat(" WHERE f.id = ?"), filmId);
         if (optionalFilm.isEmpty()) {
             throw new NotFoundException("Фильм под id=%s не найден");
-        } else {
-            return addFields(optionalFilm.get());
         }
+        return addFields(optionalFilm.get());
     }
 
     @Override
@@ -101,33 +106,36 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
         return setMultipleFilmsFields(films);
     }
 
-    @Deprecated
+
     @Override
     public Film addLike(Film film, User user) {
-        return null;
+        likesStorage.addLike(film.getId(), user.getId());
+        return addFields(film);
     }
 
-    @Deprecated
+
     @Override
     public void deleteLike(Film film, User user) {
+        likesStorage.removeLike(film.getId(), user.getId());
     }
 
 
     @Override
     public Collection<Film> getMostPopular(Integer count) {
-        Collection<Film> films = findMany(GET_ALL_QUERY.concat(" WHERE f.id IN (SELECT film_id " +
-                "FROM likes " +
-                "GROUP BY film_id " +
-                "ORDER BY COUNT(user_id) DESC)")); //.concat(" LIMIT 1000")
+        Collection<Film> films = findMany(GET_MOST_POPULAR, count);
         return setMultipleFilmsFields(films);
     }
 
 
-   private Film addFields(Film film) {
+    private Film addFields(Film film) {
         Integer filmId = film.getId();
         Integer mpaId = film.getMpa().getId();
         if (film.getGenres() != null) {
-            film.getGenres().forEach(genre -> filmGenreStorage.addFilmGenre(filmId, genre.getId()));
+            try {
+                film.getGenres().forEach(genre -> filmGenreStorage.addFilmGenre(filmId, genre.getId()));
+            } catch (DataException e) {
+                throw new NotFoundException("Введите правильный id жанра");
+            }
         }
         List<Genre> filmGenres = (List<Genre>) filmGenreStorage.getAllFilmGenresByFilmId(film.getId());
         Mpa filmMpa = mpaStorage.getMpaById(mpaId).get();
@@ -139,7 +147,7 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
         Map<Integer, List<Genre>> filmGenresMap = filmGenreStorage.getAllFilmGenres(films);
         films.forEach(film -> {
             Integer filmId = film.getId();
-            film.setGenres((List<Genre>) filmGenresMap.getOrDefault(filmId, new ArrayList<>()));
+            film.setGenres(filmGenresMap.getOrDefault(filmId, new ArrayList<>()));
             film.setLikes(likesStorage.getLikesFilmId(filmId));
         });
         return (List<Film>) films;

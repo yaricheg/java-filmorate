@@ -38,8 +38,6 @@ public class FilmController {
     @PostMapping
     public Film create(@RequestBody Film film) {
         FilmChecker.checkFilm(film);
-        mpaService.getMpaById(film.getMpa().getId());
-        //genreService.checkGenre(film.);
         filmService.saveFilm(film);
         log.info("Добавлен новый фильм {}.", film);
         return film;
