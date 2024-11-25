@@ -10,6 +10,7 @@ import java.sql.SQLException;
 
 @Component
 public class UserRowMapper implements RowMapper<User> {
+
     @Override
     public User mapRow(ResultSet resultSet, int rowNum) throws SQLException {
         User user = new User();
@@ -18,8 +19,6 @@ public class UserRowMapper implements RowMapper<User> {
         user.setLogin(resultSet.getString("login"));
         user.setName(resultSet.getString("name"));
         user.setBirthday(resultSet.getDate("birthday").toLocalDate());
-        //private Friendship friendship;
-        //private Set<Integer> friends = new HashSet<>();
         return user;
     }
 }

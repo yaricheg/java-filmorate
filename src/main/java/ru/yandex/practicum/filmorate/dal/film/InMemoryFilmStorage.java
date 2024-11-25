@@ -56,7 +56,6 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
 
-
     private Integer getNextId() {
         Integer currentMaxId = films.keySet()
                 .stream()
@@ -74,8 +73,8 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     public void deleteLike(Film film, User user) {
         List<Like> likes = film.getLikes();
-        for(Like like: likes){
-            if (like.getUserId() == user.getId()){
+        for (Like like : likes) {
+            if (like.getUserId() == user.getId()) {
                 likes.remove(like);
                 film.setLikes(likes);
                 return;

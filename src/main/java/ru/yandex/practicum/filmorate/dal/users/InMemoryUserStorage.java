@@ -38,8 +38,8 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public void addFriend(Integer userId, Integer friendId) {
-       users.get(userId).getFriends().add(friendId);
-       users.get(friendId).getFriends().add(userId);
+        users.get(userId).getFriends().add(friendId);
+        users.get(friendId).getFriends().add(userId);
     }
 
     @Override
@@ -50,7 +50,7 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public Collection<User> userFriends(Integer id) {
-       return users.get(id).getFriends().stream()
+        return users.get(id).getFriends().stream()
                 .map(friend -> users.get(friend))
                 .collect(Collectors.toList());
     }
