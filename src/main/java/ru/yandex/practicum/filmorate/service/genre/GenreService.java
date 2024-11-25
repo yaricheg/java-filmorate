@@ -11,5 +11,5 @@ public interface GenreService {
 
     Optional<Genre> getGenreById(Integer id);
 
-    void checkGenre(Collection<Integer> GenreIds);
+    void checkGenre(Collection<Integer> genreIds);
 }

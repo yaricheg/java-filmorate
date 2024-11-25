@@ -26,8 +26,8 @@ public class InMemoryGenreService implements GenreService {
     }
 
     @Override
-    public void checkGenre(Collection<Integer> GenreIds) {
-        Collection<Optional<Genre>> genres = GenreIds.stream()
+    public void checkGenre(Collection<Integer> genreIds) {
+        Collection<Optional<Genre>> genres = genreIds.stream()
                 .map(genreId -> genreDbStorage.getGenreById(genreId)).collect(Collectors.toList());
         if (!genreDbStorage.getGenres().retainAll(genres)) {
             throw new ValidationException("ошибка в id жанра");
