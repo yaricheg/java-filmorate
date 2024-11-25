@@ -52,8 +52,3 @@ CREATE TABLE IF NOT EXISTS likes (
     PRIMARY KEY (film_id, user_id)
 );
 
---MERGE INTO mpa AS target
---USING ( VALUES ('G'), ('PG'), ('PG-13'), ('R'), ('NC-17') )
---AS source (name) ON target.name = source.name
---WHEN MATCHED THEN UPDATE SET name = source.name
---WHEN NOT MATCHED THEN INSERT (name) VALUES (source.name)

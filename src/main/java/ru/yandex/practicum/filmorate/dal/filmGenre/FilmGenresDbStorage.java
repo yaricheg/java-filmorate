@@ -23,7 +23,6 @@ public class FilmGenresDbStorage implements FilmGenreStorage {
     @Override
     public void addFilmGenre(Integer filmId, Integer genreId) {
         final String insert = "INSERT INTO film_genre (film_id, genre_id) values (?, ?)";
-
         try {
             jdbc.update(insert, filmId, genreId);
         } catch (DuplicateKeyException e) {
@@ -37,7 +36,6 @@ public class FilmGenresDbStorage implements FilmGenreStorage {
     public Collection<Genre> getAllFilmGenresByFilmId(Integer filmId) {
         final String getAllByIdQuery = "SELECT g.id AS id, name FROM film_genre AS fg LEFT JOIN genres g ON " +
                 "fg.genre_id = g.id WHERE film_id = ?";
-
         return jdbc.query(getAllByIdQuery, new GenreRowMapper(), filmId);
     }
 

@@ -24,7 +24,7 @@ public class LikesDbStorage implements LikesStorage {
             jdbc.update(insertQuery, filmId, userId);
             jdbc.update(increaseRateQuery, filmId);
         } catch (Exception e) {
-            log.error("Error while adding like", e);
+            log.error("Ошибка в постановке лайка", e);
         }
     }
 

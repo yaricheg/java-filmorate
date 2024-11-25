@@ -9,7 +9,6 @@ import ru.yandex.practicum.filmorate.dal.users.UserStorage;
 import java.util.*;
 
 @Service
-//@RequiredArgsConstructor
 public class InMemoryFilmService implements FilmService {
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
