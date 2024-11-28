@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.dal.users;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -8,17 +9,16 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mappers.UserRowMapper;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.dal.friends.FriendsStorage;
+import lombok.extern.slf4j.Slf4j;
 
 import java.sql.PreparedStatement;
 import java.util.Collection;
 import java.util.Objects;
 
+@Slf4j
 @RequiredArgsConstructor
 @Component("UserDbStorage")
 public class UserDbStorage implements UserStorage {
-
-    private final FriendsStorage friendsStorage;
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -67,7 +67,7 @@ public class UserDbStorage implements UserStorage {
     public User getUserById(Integer userId) {
         try {
             return jdbcTemplate.queryForObject(ALL_USERS.concat(" WHERE id = ?"), new UserRowMapper(), userId);
-        } catch (Exception e) {
+        } catch (DataAccessException e) {
             return null;
         }
     }
@@ -75,30 +75,35 @@ public class UserDbStorage implements UserStorage {
     @Override
     public void deleteUser(User user) {
         final String deleteUserSql = "DELETE FROM users WHERE id = ?";
-        int status = jdbcTemplate.update(deleteUserSql, user.getId());
+        jdbcTemplate.update(deleteUserSql, user.getId());
     }
 
 
     @Override
     public void addFriend(Integer userId, Integer friendId) {
+        final String addFriendSql = "INSERT INTO friendship (user_id, friend_id) VALUES (?, ?)";
         if (getUserById(userId) == null) {
             throw new NotFoundException("Пользователь с id = " + userId + " не найден");
         }
         if (getUserById(friendId) == null) {
-            throw new NotFoundException("Пользователь с id = " + friendId + " не найден");
+            throw new NotFoundException("Пользователь с id = " + userId + " не найден");
         }
-        friendsStorage.addFriend(userId, friendId);
+
+        jdbcTemplate.update(addFriendSql, userId, friendId);
+
     }
 
     @Override
     public void deleteFriend(Integer userId, Integer friendId) {
+        final String deleteFriendSql = "DELETE FROM friendship WHERE user_id = ? AND friend_id = ?";
         if (getUserById(userId) == null) {
             throw new NotFoundException("Пользователь с id = " + userId + " не найден");
         }
         if (getUserById(friendId) == null) {
-            throw new NotFoundException("Пользователь с id = " + friendId + " не найден");
+            throw new NotFoundException("Пользователь с id = " + userId + " не найден");
         }
-        friendsStorage.deleteFriend(userId, friendId);
+        jdbcTemplate.update(deleteFriendSql, userId, friendId);
+
     }
 
     @Override

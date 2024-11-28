@@ -1,42 +1,41 @@
 package ru.yandex.practicum.filmorate.service.film;
 
 import org.springframework.beans.factory.annotation.Qualifier;
+
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.dal.film.FilmStorage;
-import ru.yandex.practicum.filmorate.dal.users.UserStorage;
-
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.Like;
+import ru.yandex.practicum.filmorate.model.Mpa;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class InMemoryFilmService implements FilmService {
     private final FilmStorage filmStorage;
-    private final UserStorage userStorage;
 
-    public InMemoryFilmService(@Qualifier("filmDbStorage") FilmStorage filmStorage,
-                               @Qualifier("UserDbStorage") UserStorage userStorage) {
+    public InMemoryFilmService(@Qualifier("filmDbStorage") FilmStorage filmStorage) {
         this.filmStorage = filmStorage;
-        this.userStorage = userStorage;
     }
-
     @Override
     public Film saveFilm(Film film) {
-        return filmStorage.save(film);
+        return toFilmDto(filmStorage.save(film));
     }
 
     @Override
     public Film updateFilm(Film film) {
-        return filmStorage.update(film);
+        return toFilmDto(filmStorage.update(film));
     }
 
     @Override
     public Collection<Film> getAll() {
-        return filmStorage.getFilms();
+        return toFilmsDto(filmStorage.getFilms());
     }
 
     @Override
     public Film getFilmById(Integer id) {
-        return filmStorage.getFilmById(id);
+        return toFilmDto(filmStorage.getFilmById(id));
     }
 
 
@@ -48,17 +47,47 @@ public class InMemoryFilmService implements FilmService {
 
     @Override
     public void addLike(Integer idFilm, Integer idUser) {
-        filmStorage.addLike(filmStorage.getFilmById(idFilm), userStorage.getUserById(idUser));
+        filmStorage.addLike(idFilm, idUser);
     }
 
     @Override
     public void deleteLike(Integer idFilm, Integer idUser) {
-        filmStorage.deleteLike(filmStorage.getFilmById(idFilm), userStorage.getUserById(idUser));
+        filmStorage.deleteLike(idFilm , idUser);
     }
 
     public Collection<Film> topFilms(Integer count) {
         return filmStorage.getMostPopular(count);
     }
+
+    private Film toFilmDto(Film film) {
+        Integer filmId = film.getId();
+        if (film.getGenres() != null) {
+           List<Integer> genresId = film.getGenres().stream()
+                   .map(genre -> genre.getId())
+                   .collect(Collectors.toList());
+           filmStorage.batchUpdateAddGenre(genresId,filmId);
+        }
+        List<Genre> filmGenres = (List<Genre>) filmStorage.getAllFilmGenresByFilmId(film.getId());
+        List<Like> filmLikes = filmStorage.getLikesFilmId(filmId);
+        Mpa filmMpa = filmStorage.getMpaById(film.getMpa().getId());
+        return film.toBuilder().mpa(filmMpa).genres(filmGenres).likes(filmLikes).build();
+
+    }
+
+    private List<Film> toFilmsDto(Collection<Film> films) {
+        Map<Integer, List<Genre>> filmGenresMap = filmStorage.getAllFilmGenres(films);
+        films.forEach(film -> {
+            Integer filmId = film.getId();
+            film.setGenres(filmGenresMap.getOrDefault(filmId, new ArrayList<>()));
+            film.setLikes(filmStorage.getLikesFilmId(filmId));
+        });
+        return (List<Film>) films;
+    }
+
+
+
+
+
 }
 
 

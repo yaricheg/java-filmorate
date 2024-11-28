@@ -30,7 +30,7 @@ public class LikesDbStorage implements LikesStorage {
 
     @Override
     public boolean removeLike(Integer filmId, Integer userId) {
-        final String deleteQuery = "DELETE FROM likes WHERE film_id = ? AND user_id = ?";
+      final String deleteQuery = "DELETE FROM likes WHERE film_id = ? AND user_id = ?";
         final String decreaseRateQuery = "UPDATE films SET rate = rate + 1 WHERE id = ?";
         return ((jdbc.update(deleteQuery, filmId, userId) > 0) && (jdbc.update(decreaseRateQuery, filmId) > 0));
     }

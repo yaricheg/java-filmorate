@@ -4,14 +4,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.PutMapping;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.*;
 import lombok.extern.slf4j.Slf4j;
-import ru.yandex.practicum.filmorate.model.Like;
-import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 
@@ -55,6 +54,18 @@ public class InMemoryFilmStorage implements FilmStorage {
         return films.values();
     }
 
+    @Deprecated
+    @Override
+    public void addLike(Integer filmId, Integer userId) {
+
+    }
+
+    @Deprecated
+    @Override
+    public void deleteLike(Integer filmId, Integer userId) {
+
+    }
+
 
     private Integer getNextId() {
         Integer currentMaxId = films.keySet()
@@ -65,22 +76,7 @@ public class InMemoryFilmStorage implements FilmStorage {
         return ++currentMaxId;
     }
 
-    public Film addLike(Film film, User user) {
-        Like like = new Like(film.getId(), user.getId());
-        film.getLikes().add(like);
-        return film;
-    }
 
-    public void deleteLike(Film film, User user) {
-        List<Like> likes = film.getLikes();
-        for (Like like : likes) {
-            if (like.getUserId() == user.getId()) {
-                likes.remove(like);
-                film.setLikes(likes);
-                return;
-            }
-        }
-    }
 
     @Override
     public List<Film> getMostPopular(Integer count) {
@@ -90,6 +86,53 @@ public class InMemoryFilmStorage implements FilmStorage {
                 .sorted((f1, f2) -> f2.getLikes().size() - f1.getLikes().size())
                 .limit(count)
                 .collect(Collectors.toList());
+    }
+
+    @Deprecated
+    @Override
+    public Mpa getMpaById(Integer mpaId) {
+        return null;
+    }
+
+
+    @Deprecated
+    @Override
+    public User getUserById(Integer userId) {
+        return null;
+    }
+
+    @Deprecated
+    @Override
+    public int[] batchUpdateAddGenre(List<Integer> genres, Integer filmId) {
+        return new int[0];
+    }
+
+    //@Deprecated
+    //@Override
+   // public void addFilmGenre(Integer filmId, Integer genreId){}
+
+    @Deprecated
+    @Override
+    public Collection<Genre> getAllFilmGenresByFilmId(Integer filmId) {
+        return null;
+    }
+
+   /* @Deprecated
+    @Override
+    public void deleteAllFilmGenresByFilmId(Integer filmId) {
+
+    }*/
+
+    @Deprecated
+    @Override
+    public Map<Integer, List<Genre>> getAllFilmGenres(Collection<Film> films) {
+        return null;
+    }
+
+    @Deprecated
+    @Override
+    public List<Like> getLikesFilmId(Integer filmId) {
+        return null;
     }
 
 }
