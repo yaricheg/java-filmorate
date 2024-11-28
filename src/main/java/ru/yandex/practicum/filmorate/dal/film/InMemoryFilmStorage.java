@@ -11,7 +11,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 
 @RequiredArgsConstructor
@@ -77,15 +76,15 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
 
-
     @Override
     public List<Film> getMostPopular(Integer count) {
-        return films.values().stream()
+        /*return films.values().stream()
                 .filter(film -> film.getLikes() != null)
                 .filter(film -> !film.getLikes().isEmpty())
                 .sorted((f1, f2) -> f2.getLikes().size() - f1.getLikes().size())
                 .limit(count)
-                .collect(Collectors.toList());
+                .collect(Collectors.toList());*/
+        return null;
     }
 
     @Deprecated
@@ -109,7 +108,7 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     //@Deprecated
     //@Override
-   // public void addFilmGenre(Integer filmId, Integer genreId){}
+    // public void addFilmGenre(Integer filmId, Integer genreId){}
 
     @Deprecated
     @Override
@@ -129,10 +128,5 @@ public class InMemoryFilmStorage implements FilmStorage {
         return null;
     }
 
-    @Deprecated
-    @Override
-    public List<Like> getLikesFilmId(Integer filmId) {
-        return null;
-    }
 
 }

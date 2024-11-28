@@ -1,13 +1,12 @@
 package ru.yandex.practicum.filmorate.service.film;
 
 import org.springframework.beans.factory.annotation.Qualifier;
-
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.dal.film.FilmStorage;
 import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.model.Like;
 import ru.yandex.practicum.filmorate.model.Mpa;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -18,6 +17,7 @@ public class InMemoryFilmService implements FilmService {
     public InMemoryFilmService(@Qualifier("filmDbStorage") FilmStorage filmStorage) {
         this.filmStorage = filmStorage;
     }
+
     @Override
     public Film saveFilm(Film film) {
         return toFilmDto(filmStorage.save(film));
@@ -52,7 +52,7 @@ public class InMemoryFilmService implements FilmService {
 
     @Override
     public void deleteLike(Integer idFilm, Integer idUser) {
-        filmStorage.deleteLike(idFilm , idUser);
+        filmStorage.deleteLike(idFilm, idUser);
     }
 
     public Collection<Film> topFilms(Integer count) {
@@ -62,15 +62,14 @@ public class InMemoryFilmService implements FilmService {
     private Film toFilmDto(Film film) {
         Integer filmId = film.getId();
         if (film.getGenres() != null) {
-           List<Integer> genresId = film.getGenres().stream()
-                   .map(genre -> genre.getId())
-                   .collect(Collectors.toList());
-           filmStorage.batchUpdateAddGenre(genresId,filmId);
+            List<Integer> genresId = film.getGenres().stream()
+                    .map(genre -> genre.getId())
+                    .collect(Collectors.toList());
+            filmStorage.batchUpdateAddGenre(genresId, filmId);
         }
         List<Genre> filmGenres = (List<Genre>) filmStorage.getAllFilmGenresByFilmId(film.getId());
-        List<Like> filmLikes = filmStorage.getLikesFilmId(filmId);
         Mpa filmMpa = filmStorage.getMpaById(film.getMpa().getId());
-        return film.toBuilder().mpa(filmMpa).genres(filmGenres).likes(filmLikes).build();
+        return film.toBuilder().mpa(filmMpa).genres(filmGenres).build();
 
     }
 
@@ -79,13 +78,9 @@ public class InMemoryFilmService implements FilmService {
         films.forEach(film -> {
             Integer filmId = film.getId();
             film.setGenres(filmGenresMap.getOrDefault(filmId, new ArrayList<>()));
-            film.setLikes(filmStorage.getLikesFilmId(filmId));
         });
         return (List<Film>) films;
     }
-
-
-
 
 
 }

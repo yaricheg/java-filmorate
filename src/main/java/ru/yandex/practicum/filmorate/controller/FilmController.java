@@ -7,9 +7,6 @@ import ru.yandex.practicum.filmorate.exception.FilmChecker;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.film.FilmService;
-import ru.yandex.practicum.filmorate.service.genre.GenreService;
-import ru.yandex.practicum.filmorate.service.mpa.MpaService;
-
 import java.util.Collection;
 
 @RequiredArgsConstructor

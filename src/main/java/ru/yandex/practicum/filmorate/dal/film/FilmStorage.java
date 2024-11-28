@@ -23,16 +23,9 @@ public interface FilmStorage {
 
     void deleteLike(Integer filmId, Integer userId);
 
-   // void addFilmGenre(Integer filmId, Integer genreId);
-
     Collection<Genre> getAllFilmGenresByFilmId(Integer filmId);
 
-    //void deleteAllFilmGenresByFilmId(Integer filmId);
-
     Map<Integer, List<Genre>> getAllFilmGenres(Collection<Film> films);
-
-
-    List<Like> getLikesFilmId(Integer filmId);
 
     Collection<Film> getMostPopular(Integer count);
 

@@ -3,7 +3,6 @@ package ru.yandex.practicum.filmorate.dal.film;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DuplicateKeyException;
-import org.springframework.data.relational.core.sql.In;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -12,7 +11,6 @@ import ru.yandex.practicum.filmorate.dal.BaseRepository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.mappers.GenreRowMapper;
-import ru.yandex.practicum.filmorate.mappers.LikeMapper;
 import ru.yandex.practicum.filmorate.mappers.MpaRowMapper;
 import ru.yandex.practicum.filmorate.mappers.UserRowMapper;
 import ru.yandex.practicum.filmorate.model.*;
@@ -69,7 +67,7 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
 
     @Override
     public Film update(Film film) {
-       // deleteAllFilmGenresByFilmId(film.getId());
+        // deleteAllFilmGenresByFilmId(film.getId());
         update(
                 UPDATE_QUERY,
                 film.getName(),
@@ -160,14 +158,6 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
         return findMany(GET_MOST_POPULAR, count);
     }
 
-
-    @Override
-    public List<Like> getLikesFilmId(Integer filmId) {
-        final String getLikesByFilmId = "SELECT * FROM likes WHERE film_id = ?";
-        return jdbc.query(getLikesByFilmId, new LikeMapper(), filmId);
-    }
-
-
     @Override
     public Mpa getMpaById(Integer mpaId) {
         final String getRateByMpaId = "SELECT * FROM mpa WHERE id = ?";
@@ -184,7 +174,6 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
         }
     }
 
-
     @Override
     public int[] batchUpdateAddGenre(final List<Integer> genres, Integer filmId) {
         try {
@@ -196,6 +185,7 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
                             ps.setInt(1, filmId);
                             ps.setInt(2, genre);
                         }
+
                         public int getBatchSize() {
                             return genres.size();
                         }

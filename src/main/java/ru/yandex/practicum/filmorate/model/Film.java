@@ -18,7 +18,6 @@ public class Film {
     private Integer duration;
     private List<Genre> genres;
     private Mpa mpa;
-    private List<Like> likes;
     private Integer rate;
 
 }
