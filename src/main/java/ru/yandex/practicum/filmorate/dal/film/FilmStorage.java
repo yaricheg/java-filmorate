@@ -29,7 +29,7 @@ public interface FilmStorage {
 
     Collection<Film> getMostPopular(Integer count);
 
-    Mpa getMpaById(Integer mpaId);
+    void deleteFilmGenres(Integer filmId);
 
     User getUserById(Integer userId);
 

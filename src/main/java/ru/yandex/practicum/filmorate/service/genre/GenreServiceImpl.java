@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class InMemoryGenreService implements GenreService {
+public class GenreServiceImpl implements GenreService {
     private final GenreDbStorage genreDbStorage;
 
     @Override

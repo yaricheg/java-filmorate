@@ -2,16 +2,17 @@ package ru.yandex.practicum.filmorate.service.user;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.dal.users.UserStorage;
 
 import java.util.*;
 
 @Service
-public class InMemoryUserService implements UserService {
+public class UserServiceImpl implements UserService {
     private final UserStorage userStorage;
 
-    public InMemoryUserService(@Qualifier("UserDbStorage") UserStorage userStorage) {
+    public UserServiceImpl(@Qualifier("UserDbStorage") UserStorage userStorage) {
         this.userStorage = userStorage;
     }
 
@@ -33,6 +34,12 @@ public class InMemoryUserService implements UserService {
 
     @Override
     public User addFriend(Integer userId, Integer friendId) {
+        if (userStorage.getUserById(userId) == null) {
+            throw new NotFoundException("Пользователь с id = " + userId + " не найден");
+        }
+        if (userStorage.getUserById(friendId) == null) {
+            throw new NotFoundException("Пользователь с id = " + userId + " не найден");
+        }
         User user = userStorage.getUserById(userId);
         User friend = userStorage.getUserById(friendId);
         userStorage.addFriend(userId, friendId);
@@ -41,12 +48,21 @@ public class InMemoryUserService implements UserService {
 
     @Override
     public User deleteFriend(Integer userId, Integer friendId) {
+        if (userStorage.getUserById(userId) == null) {
+            throw new NotFoundException("Пользователь с id = " + userId + " не найден");
+        }
+        if (userStorage.getUserById(friendId) == null) {
+            throw new NotFoundException("Пользователь с id = " + userId + " не найден");
+        }
         userStorage.deleteFriend(userId, friendId);
         return userStorage.getUserById(userId);
     }
 
     @Override
     public Collection<User> userFriends(Integer id) {
+        if (userStorage.getUserById(id) == null) {
+            throw new NotFoundException("Пользователь с id = " + id + " не найден");
+        }
         userStorage.getUserById(id);
         return userStorage.userFriends(id);
     }

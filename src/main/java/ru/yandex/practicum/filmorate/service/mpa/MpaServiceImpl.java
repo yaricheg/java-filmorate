@@ -11,7 +11,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class InMemoryMpaService implements MpaService {
+public class MpaServiceImpl implements MpaService {
 
     private final MpaStorage mpaStorage;
 

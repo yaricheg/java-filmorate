@@ -51,4 +51,3 @@ CREATE TABLE IF NOT EXISTS likes (
     FOREIGN KEY (user_id) REFERENCES users(id),
     PRIMARY KEY (film_id, user_id)
 );
-

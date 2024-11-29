@@ -11,7 +11,6 @@ import ru.yandex.practicum.filmorate.dal.BaseRepository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.mappers.GenreRowMapper;
-import ru.yandex.practicum.filmorate.mappers.MpaRowMapper;
 import ru.yandex.practicum.filmorate.mappers.UserRowMapper;
 import ru.yandex.practicum.filmorate.model.*;
 
@@ -19,28 +18,37 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.*;
 
+
 @Slf4j
 @Repository("filmDbStorage")
 public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
 
     private static final String GET_ALL_QUERY = "SELECT f.*, m.id AS mpa_id, m.name AS mpa_name FROM films f " +
             "LEFT JOIN mpa m ON f.mpa_id = m.id";
+
+    // private static final String GET_ALL_QUERY = "select * from FILMS f, MPA m where f.MPA_ID = m.ID";
+
     private static final String INSERT_QUERY = "INSERT INTO films (name, release_date, description, " +
             "duration, mpa_id, rate) " +
             "VALUES (?, ?, ?, ?, ?, ?)";
     private static final String UPDATE_QUERY = "UPDATE films SET name = ?, release_date = ?, description = ?, " +
             "duration = ?, mpa_id = ?, rate = ? WHERE id = ?";
 
-    private static final String GET_MOST_POPULAR = "SELECT * FROM  films " +
-            "WHERE id IN (SELECT film_id " +
+    private static final String GET_MOST_POPULAR = "SELECT f.*, m.id AS mpa_id, m.name AS mpa_name " +
+            "FROM films f LEFT JOIN mpa m ON f.mpa_id = m.id " +
+            "WHERE f.id IN (SELECT film_id " +
             "FROM likes " +
             "GROUP BY film_id " +
             "ORDER BY COUNT(user_id) DESC) " +
             "LIMIT ? ";
 
-   /* private static final String GET_MOST_POPULAR_BY_RATE = "SELECT * FROM films " +
-            "ORDER BY rate DESC " +
-            "LIMIT ? ";*/
+
+   /* private static final String GET_MOST_POPULAR_BY_RATE = "SELECT f.*, m.id AS mpa_id, m.name AS mpa_name " +
+            "FROM films f LEFT JOIN mpa m ON f.mpa_id = m.id " +
+            "ORDER BY f.rate DESC " +
+            "LIMIT ?";*/
+
+
 
     public FilmDbStorage(JdbcTemplate jdbc,
                          RowMapper<Film> mapper) {
@@ -49,9 +57,6 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
 
     @Override
     public Film save(Film film) {
-        if (film.getMpa().getId() > 5 || film.getMpa().getId() < 0) {
-            throw new ValidationException("Введен неправильный id рейтинга");
-        }
         Integer id = Math.toIntExact(insert(
                 INSERT_QUERY,
                 film.getName(),
@@ -67,7 +72,6 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
 
     @Override
     public Film update(Film film) {
-        // deleteAllFilmGenresByFilmId(film.getId());
         update(
                 UPDATE_QUERY,
                 film.getName(),
@@ -106,26 +110,22 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
     public void addLike(Integer filmId, Integer userId) {
         final String insertQuery = "INSERT INTO likes (film_id, user_id) values (?, ?)";
         final String increaseRateQuery = "UPDATE films SET rate = rate + 1 WHERE id = ?";
-        Film film = getFilmById(filmId);
-        User user = getUserById(userId);
-        jdbc.update(insertQuery, film.getId(), user.getId());
-        jdbc.update(increaseRateQuery, film.getId());
+        jdbc.update(insertQuery, filmId, userId);
+        jdbc.update(increaseRateQuery, filmId);
     }
 
     @Override
     public void deleteLike(Integer filmId, Integer userId) {
         final String deleteQuery = "DELETE FROM likes WHERE film_id = ? AND user_id = ?";
         final String decreaseRateQuery = "UPDATE films SET rate = rate - 1 WHERE id = ?";
-        Film film = getFilmById(filmId);
-        User user = getUserById(userId);
-        jdbc.update(deleteQuery, film.getId(), user.getId());
-        jdbc.update(decreaseRateQuery, film.getId());
+        jdbc.update(deleteQuery, filmId, userId);
+        jdbc.update(decreaseRateQuery, filmId);
     }
 
 
     @Override
     public Collection<Genre> getAllFilmGenresByFilmId(Integer filmId) {
-        final String getAllByIdQuery = "SELECT g.id AS id, name FROM film_genre AS fg LEFT JOIN genres g ON " +
+        final String getAllByIdQuery = "SELECT g.id, g.name AS name FROM film_genre AS fg LEFT JOIN genres g ON " +
                 "fg.genre_id = g.id WHERE film_id = ?";
         return jdbc.query(getAllByIdQuery, new GenreRowMapper(), filmId);
     }
@@ -159,12 +159,6 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
     }
 
     @Override
-    public Mpa getMpaById(Integer mpaId) {
-        final String getRateByMpaId = "SELECT * FROM mpa WHERE id = ?";
-        return jdbc.queryForObject(getRateByMpaId, new MpaRowMapper(), mpaId);
-    }
-
-    @Override
     public User getUserById(Integer userId) {
         final String getUserById = "SELECT * FROM users WHERE id = ?";
         try {
@@ -173,6 +167,13 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
             throw new NotFoundException("Пользователь с id " + userId + " не найден");
         }
     }
+
+    @Override
+    public void deleteFilmGenres(Integer filmId) {
+        final String deleteGenres = "delete from FILM_GENRE where FILM_ID = ?";
+        jdbc.update(deleteGenres, filmId);
+    }
+
 
     @Override
     public int[] batchUpdateAddGenre(final List<Integer> genres, Integer filmId) {

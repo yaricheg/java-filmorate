@@ -82,35 +82,18 @@ public class UserDbStorage implements UserStorage {
     @Override
     public void addFriend(Integer userId, Integer friendId) {
         final String addFriendSql = "INSERT INTO friendship (user_id, friend_id) VALUES (?, ?)";
-        if (getUserById(userId) == null) {
-            throw new NotFoundException("Пользователь с id = " + userId + " не найден");
-        }
-        if (getUserById(friendId) == null) {
-            throw new NotFoundException("Пользователь с id = " + userId + " не найден");
-        }
-
         jdbcTemplate.update(addFriendSql, userId, friendId);
-
     }
 
     @Override
     public void deleteFriend(Integer userId, Integer friendId) {
         final String deleteFriendSql = "DELETE FROM friendship WHERE user_id = ? AND friend_id = ?";
-        if (getUserById(userId) == null) {
-            throw new NotFoundException("Пользователь с id = " + userId + " не найден");
-        }
-        if (getUserById(friendId) == null) {
-            throw new NotFoundException("Пользователь с id = " + userId + " не найден");
-        }
         jdbcTemplate.update(deleteFriendSql, userId, friendId);
 
     }
 
     @Override
     public Collection<User> userFriends(Integer id) {
-        if (getUserById(id) == null) {
-            throw new NotFoundException("Пользователь с id = " + id + " не найден");
-        }
         final String sql = "SELECT * " +
                 "FROM users " +
                 "WHERE id IN (SELECT f.friend_id " +
