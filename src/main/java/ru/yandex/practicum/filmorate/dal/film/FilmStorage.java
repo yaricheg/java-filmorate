@@ -33,6 +33,4 @@ public interface FilmStorage {
 
     User getUserById(Integer userId);
 
-    int[] batchUpdateAddGenre(final List<Integer> genres, Integer filmId);
-
 }

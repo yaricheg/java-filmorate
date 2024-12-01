@@ -2,7 +2,6 @@ package ru.yandex.practicum.filmorate.dal.film;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -13,6 +12,7 @@ import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.mappers.GenreRowMapper;
 import ru.yandex.practicum.filmorate.mappers.UserRowMapper;
 import ru.yandex.practicum.filmorate.model.*;
+import org.springframework.dao.DuplicateKeyException;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -25,8 +25,6 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
 
     private static final String GET_ALL_QUERY = "SELECT f.*, m.id AS mpa_id, m.name AS mpa_name FROM films f " +
             "LEFT JOIN mpa m ON f.mpa_id = m.id";
-
-    // private static final String GET_ALL_QUERY = "select * from FILMS f, MPA m where f.MPA_ID = m.ID";
 
     private static final String INSERT_QUERY = "INSERT INTO films (name, release_date, description, " +
             "duration, mpa_id, rate) " +
@@ -41,13 +39,6 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
             "GROUP BY film_id " +
             "ORDER BY COUNT(user_id) DESC) " +
             "LIMIT ? ";
-
-
-   /* private static final String GET_MOST_POPULAR_BY_RATE = "SELECT f.*, m.id AS mpa_id, m.name AS mpa_name " +
-            "FROM films f LEFT JOIN mpa m ON f.mpa_id = m.id " +
-            "ORDER BY f.rate DESC " +
-            "LIMIT ?";*/
-
 
 
     public FilmDbStorage(JdbcTemplate jdbc,
@@ -67,11 +58,13 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
                 film.getRate()
         ));
         film.setId(id);
-        return film;
+        saveGenres(film);
+        return getFilmById(film.getId());
     }
 
     @Override
     public Film update(Film film) {
+        jdbc.update("delete from FILM_GENRE where FILM_ID = ?", film.getId());
         update(
                 UPDATE_QUERY,
                 film.getName(),
@@ -82,7 +75,8 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
                 film.getRate(),
                 film.getId()
         );
-        return film;
+        saveGenres(film);
+        return getFilmById(film.getId());
     }
 
     @Override
@@ -97,7 +91,10 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
         if (optionalFilm.isEmpty()) {
             throw new NotFoundException("Фильм под id=%s не найден");
         }
-        return optionalFilm.get();
+        Film film = optionalFilm.get();
+        List<Genre> genres = getAllFilmGenresByFilmId(filmId).stream().toList();
+        film.setGenres(genres);
+        return film;
     }
 
     @Override
@@ -175,20 +172,24 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
     }
 
 
-    @Override
-    public int[] batchUpdateAddGenre(final List<Integer> genres, Integer filmId) {
+    private void saveGenres(Film film) {
         try {
-            return this.jdbc.batchUpdate(
-                    "INSERT INTO film_genre (film_id, genre_id) values (?, ?)",
+            final Integer filmId = film.getId();
+            final List<Genre> genres = film.getGenres();
+            if (genres == null || genres.isEmpty()) {
+                return;
+            }
+            final ArrayList<Genre> genreList = new ArrayList<>(genres);
+            jdbc.batchUpdate(
+                    "insert into FILM_GENRE (FILM_ID, GENRE_ID) values (?, ?)",
                     new BatchPreparedStatementSetter() {
                         public void setValues(PreparedStatement ps, int i) throws SQLException {
-                            Integer genre = genres.get(i);
                             ps.setInt(1, filmId);
-                            ps.setInt(2, genre);
+                            ps.setInt(2, genreList.get(i).getId());
                         }
 
                         public int getBatchSize() {
-                            return genres.size();
+                            return genreList.size();
                         }
                     });
         } catch (DuplicateKeyException e) {
@@ -196,7 +197,6 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
         } catch (DataAccessException e) {
             throw new ValidationException("Введите правильный id жанра");
         }
-        return new int[0];
     }
 
 }

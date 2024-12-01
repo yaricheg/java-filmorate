@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS films(
     release_date date NOT NULL,
     duration INT NOT NULL,
     mpa_id INT NOT NULL,
-    rate INT DEFAULT 0,
+    rate INT,
     FOREIGN KEY (mpa_id) REFERENCES mpa(id)
 );
 
