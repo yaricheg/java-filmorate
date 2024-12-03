@@ -11,6 +11,8 @@ public interface FilmService {
 
     Collection<Film> getAll();
 
+    Film getFilmById(Integer id);
+
     void deleteFilm(Film film);
 
     void addLike(Integer film, Integer user);
@@ -18,4 +20,5 @@ public interface FilmService {
     void deleteLike(Integer film, Integer user);
 
     Collection<Film> topFilms(Integer count);
+
 }

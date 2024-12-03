@@ -15,6 +15,7 @@ import java.util.Collection;
 @RequestMapping("/films")
 @Slf4j
 public class FilmController {
+
     private final FilmService filmService;
 
     @GetMapping
@@ -22,6 +23,13 @@ public class FilmController {
         log.debug("Просмотр всех фильмов");
         return filmService.getAll();
     }
+
+    @GetMapping("/{id}")
+    public Film getFilm(@PathVariable Integer id) {
+        log.debug("Просмотр всех фильмов");
+        return filmService.getFilmById(id);
+    }
+
 
     @PostMapping
     public Film create(@RequestBody Film film) {
