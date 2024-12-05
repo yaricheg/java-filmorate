@@ -10,12 +10,12 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.UserNotFound;
 import ru.yandex.practicum.filmorate.mappers.EventRowMapper;
+import ru.yandex.practicum.filmorate.mappers.EventRowMapper;
 import ru.yandex.practicum.filmorate.mappers.UserRowMapper;
 import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.sql.PreparedStatement;
-import java.time.Instant;
 import java.util.Collection;
 import java.util.Objects;
 
@@ -76,7 +76,7 @@ public class UserDbStorage implements UserStorage {
         }
 
     @Override
-    public void deleteUser(Integer id) {
+    public void deleteUser(User user) {
         final String deleteUserSql = "DELETE FROM users WHERE id = ?";
         int rowsAffected = jdbcTemplate.update(deleteUserSql, id);
 
