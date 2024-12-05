@@ -2,11 +2,13 @@ package ru.yandex.practicum.filmorate.service.user;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.dal.users.UserStorage;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.model.Event;
+import ru.yandex.practicum.filmorate.model.User;
 
-import java.util.*;
+import java.time.Instant;
+import java.util.Collection;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -72,5 +74,20 @@ public class UserServiceImpl implements UserService {
         User user = userStorage.getUserById(userId);
         User friend = userStorage.getUserById(otherId);
         return userStorage.commonFriends(user.getId(), friend.getId());
+    }
+
+    @Override
+    public Collection<Event> getEvents(Integer userId) {
+        return userStorage.getEvents(userId);
+    }
+
+    public Event addEvent(Integer userId, String eventType, String operation, Integer entityId) {
+        return Event.builder()
+                .timestamp(Instant.now())
+                .userId(userId)
+                .eventType(eventType)
+                .operation(operation)
+                .entityId(entityId)
+                .build();
     }
 }

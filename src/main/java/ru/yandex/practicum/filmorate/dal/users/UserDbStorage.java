@@ -1,17 +1,20 @@
 package ru.yandex.practicum.filmorate.dal.users;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.mappers.EventRowMapper;
 import ru.yandex.practicum.filmorate.mappers.UserRowMapper;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.User;
-import lombok.extern.slf4j.Slf4j;
 
 import java.sql.PreparedStatement;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Objects;
 
@@ -20,9 +23,8 @@ import java.util.Objects;
 @Component("UserDbStorage")
 public class UserDbStorage implements UserStorage {
 
-    private final JdbcTemplate jdbcTemplate;
-
     private static final String ALL_USERS = "SELECT * FROM users";
+    private final JdbcTemplate jdbcTemplate;
 
     @Override
     public User create(User user) {
@@ -83,6 +85,8 @@ public class UserDbStorage implements UserStorage {
     public void addFriend(Integer userId, Integer friendId) {
         final String addFriendSql = "INSERT INTO friendship (user_id, friend_id) VALUES (?, ?)";
         jdbcTemplate.update(addFriendSql, userId, friendId);
+
+        addEvent(userId, "FRIEND", "ADD", friendId);
     }
 
     @Override
@@ -90,6 +94,7 @@ public class UserDbStorage implements UserStorage {
         final String deleteFriendSql = "DELETE FROM friendship WHERE user_id = ? AND friend_id = ?";
         jdbcTemplate.update(deleteFriendSql, userId, friendId);
 
+        addEvent(userId, "FRIEND", "REMOVE", friendId);
     }
 
     @Override
@@ -103,6 +108,14 @@ public class UserDbStorage implements UserStorage {
     }
 
     @Override
+    public Collection<Event> getEvents(Integer userId) {
+        String sql = "SELECT e.* " +
+                "FROM events e " +
+                "WHERE e.user_id IN (SELECT friend_id FROM friendship WHERE user_id = ?) ";
+        return jdbcTemplate.query(sql, new EventRowMapper(), userId);
+    }
+
+    @Override
     public Collection commonFriends(Integer userId, Integer otherId) {
         final String sql = "SELECT * FROM users WHERE id IN " +
                 "(SELECT friend_id " +
@@ -112,5 +125,27 @@ public class UserDbStorage implements UserStorage {
                 "JOIN friendship f ON u.id = f.user_id WHERE u.id = ?)";
         return jdbcTemplate.query(sql, new UserRowMapper(), userId, otherId);
     }
+
+    private Event addEvent(Integer userId, String eventType, String operation, Integer entityId) {
+        String sql = "INSERT INTO events (timestamp, user_id, event_type, operation, entity_id) VALUES (?, ?, ?, ?, ?)";
+        long timestamp = Instant.now().toEpochMilli();
+
+        Event event = Event.builder()
+                .timestamp(Instant.ofEpochMilli(timestamp))
+                .userId(userId)
+                .eventType(eventType)
+                .operation(operation)
+                .entityId(entityId)
+                .build();
+
+        try {
+            jdbcTemplate.update(sql, timestamp, userId, eventType, operation, entityId);
+        } catch (DataAccessException e) {
+            log.error("Ошибка при добавлении события: ", e);
+            throw new RuntimeException("Ошибка при добавлении события в базу данных", e);
+        }
+        return event;
+    }
+
 
 }
