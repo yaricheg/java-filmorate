@@ -81,13 +81,4 @@ public class UserServiceImpl implements UserService {
         return userStorage.getEvents(userId);
     }
 
-    public Event addEvent(Integer userId, String eventType, String operation, Integer entityId) {
-        return Event.builder()
-                .timestamp(Instant.now())
-                .userId(userId)
-                .eventType(eventType)
-                .operation(operation)
-                .entityId(entityId)
-                .build();
-    }
 }

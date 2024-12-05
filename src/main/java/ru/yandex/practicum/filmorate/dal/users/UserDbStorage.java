@@ -131,7 +131,7 @@ public class UserDbStorage implements UserStorage {
         long timestamp = Instant.now().toEpochMilli();
 
         Event event = Event.builder()
-                .timestamp(Instant.ofEpochMilli(timestamp))
+                .timestamp(timestamp)
                 .userId(userId)
                 .eventType(eventType)
                 .operation(operation)

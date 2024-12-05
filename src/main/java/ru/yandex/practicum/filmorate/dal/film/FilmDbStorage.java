@@ -214,7 +214,7 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
         long timestamp = Instant.now().toEpochMilli();
 
         Event event = Event.builder()
-                .timestamp(Instant.ofEpochMilli(timestamp))
+                .timestamp(timestamp)
                 .userId(userId)
                 .eventType(eventType)
                 .operation(operation)
