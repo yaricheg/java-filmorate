@@ -17,7 +17,6 @@ import ru.yandex.practicum.filmorate.model.*;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.time.Instant;
 import java.util.*;
 
 
@@ -268,23 +267,6 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
         }
     }
 
-    private void addEvent(Integer userId, String eventType, String operation, Integer entityId) {
-        String sql = "INSERT INTO events (timestamp, user_id, event_type, operation, entity_id) VALUES (?, ?, ?, ?, ?)";
-
-        long timestamp = Instant.now().toEpochMilli();
-
-        Event event = Event.builder()
-                .timestamp(timestamp)
-                .userId(userId)
-                .eventType(eventType)
-                .operation(operation)
-                .entityId(entityId)
-                .build();
-
-        jdbc.update(sql, timestamp, userId, eventType, operation, entityId);
-    }
-
-
     private void saveDirectors(Film film) {
         try {
             final Integer filmId = film.getId();
@@ -310,6 +292,30 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
         } catch (DataAccessException e) {
             throw new ValidationException("Введите правильный id режиссера");
         }
+    }
+
+    private Event addEvent(Integer userId, String eventType, String operation, Integer entityId) {
+        String sql = "INSERT INTO events (timestamp, user_id, event_type, operation, entity_id) VALUES (?, ?, ?, ?, ?)";
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+
+        long timestamp = Instant.now().toEpochMilli();
+
+        Event event = Event.builder()
+                .timestamp(Instant.ofEpochMilli(timestamp))
+                .userId(userId)
+                .eventType(eventType)
+                .operation(operation)
+                .entityId(entityId)
+                .build();
+
+        try {
+            jdbc.update(sql, timestamp, userId, eventType, operation, entityId, keyHolder);
+            event.setEventId(Objects.requireNonNull(keyHolder.getKey()).longValue());
+        } catch (DataAccessException e) {
+            log.error("Ошибка при добавлении события: ", e);
+            throw new RuntimeException("Ошибка при добавлении события в базу данных", e);
+        }
+        return event;
     }
 
 }
