@@ -22,7 +22,7 @@ public interface UserStorage {
 
     Collection commonFriends(Integer userId, Integer otherId);
 
-    void deleteUser(User user);
+    void deleteUser(Integer id);
 
     User getUserById(Integer id);
 }

@@ -86,9 +86,9 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
     }
 
     @Override
-    public void delete(Film film) {
-        String deleteFilmSql = "DELETE FROM films WHERE film_id = ?";
-        jdbc.update(deleteFilmSql, film.getId());
+    public void delete(Integer id) {
+        String deleteFilmSql = "DELETE FROM films WHERE id = ?";
+        jdbc.update(deleteFilmSql, id);
     }
 
     @Override

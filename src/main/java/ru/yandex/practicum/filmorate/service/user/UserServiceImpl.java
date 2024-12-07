@@ -7,7 +7,6 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.time.Instant;
 import java.util.Collection;
 
 @Service
@@ -26,6 +25,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public User createUser(User user) {
         return userStorage.create(user);
+    }
+
+    @Override
+    public void deleteUser(Integer id) {
+        userStorage.deleteUser(id);
     }
 
     @Override
