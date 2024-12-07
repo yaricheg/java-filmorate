@@ -21,4 +21,8 @@ public interface FilmService {
 
     Collection<Film> topFilms(Integer count);
 
+    Collection<Film> getFilmsByIdDirectorSortYear(int id);
+
+    Collection<Film> getFilmsByIdDirectorsSortLike(int id);
+
 }
