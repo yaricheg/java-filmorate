@@ -8,6 +8,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.UserNotFound;
 import ru.yandex.practicum.filmorate.mappers.EventRowMapper;
 import ru.yandex.practicum.filmorate.mappers.UserRowMapper;
 import ru.yandex.practicum.filmorate.model.Event;
@@ -65,19 +66,23 @@ public class UserDbStorage implements UserStorage {
         return jdbcTemplate.query(ALL_USERS, new UserRowMapper());
     }
 
-    @Override
-    public User getUserById(Integer userId) {
-        try {
-            return jdbcTemplate.queryForObject(ALL_USERS.concat(" WHERE id = ?"), new UserRowMapper(), userId);
-        } catch (DataAccessException e) {
-            return null;
+        @Override
+        public User getUserById(Integer userId) {
+            try {
+                return jdbcTemplate.queryForObject(ALL_USERS.concat(" WHERE id = ?"), new UserRowMapper(), userId);
+            } catch (DataAccessException e) {
+                throw new UserNotFound("USER NOT FOUND");
+            }
         }
-    }
 
     @Override
     public void deleteUser(Integer id) {
         final String deleteUserSql = "DELETE FROM users WHERE id = ?";
-        jdbcTemplate.update(deleteUserSql, id);
+        int rowsAffected = jdbcTemplate.update(deleteUserSql, id);
+
+        if (rowsAffected == 0) {
+            throw new UserNotFound("Пользователь с ID " + id + " не найден.");
+        }
     }
 
 

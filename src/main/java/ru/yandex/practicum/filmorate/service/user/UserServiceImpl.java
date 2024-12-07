@@ -33,6 +33,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public User findUser(Integer id) {
+        return userStorage.getUserById(id);
+    }
+
+    @Override
     public User updateUser(User updateUser) {
 
         return userStorage.update(updateUser);

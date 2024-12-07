@@ -15,10 +15,7 @@ import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.mappers.DirectorRowMapper;
 import ru.yandex.practicum.filmorate.mappers.GenreRowMapper;
 import ru.yandex.practicum.filmorate.mappers.UserRowMapper;
-import ru.yandex.practicum.filmorate.model.Event;
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.*;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -273,9 +270,8 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
         }
     }
 
-    private Event addEvent(Integer userId, String eventType, String operation, Integer entityId) {
+    private void addEvent(Integer userId, String eventType, String operation, Integer entityId) {
         String sql = "INSERT INTO events (timestamp, user_id, event_type, operation, entity_id) VALUES (?, ?, ?, ?, ?)";
-        KeyHolder keyHolder = new GeneratedKeyHolder();
 
         long timestamp = Instant.now().toEpochMilli();
 
@@ -287,15 +283,9 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
                 .entityId(entityId)
                 .build();
 
-        try {
-            jdbc.update(sql, timestamp, userId, eventType, operation, entityId, keyHolder);
-            event.setEventId(Objects.requireNonNull(keyHolder.getKey()).longValue());
-        } catch (DataAccessException e) {
-            log.error("Ошибка при добавлении события: ", e);
-            throw new RuntimeException("Ошибка при добавлении события в базу данных", e);
-        }
-        return event;
+        jdbc.update(sql, timestamp, userId, eventType, operation, entityId);
     }
+
 
     private void saveDirectors(Film film) {
         try {
