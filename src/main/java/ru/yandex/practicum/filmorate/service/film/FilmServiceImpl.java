@@ -78,13 +78,10 @@ public class FilmServiceImpl implements FilmService {
 
     private List<Film> toFilmsDto(Collection<Film> films) {
         Map<Integer, List<Genre>> filmGenresMap = filmStorage.getAllFilmGenres(films);
-        films.forEach(film -> {
-            Integer filmId = film.getId();
-            film.setGenres(filmGenresMap.getOrDefault(filmId, new ArrayList<>()));
-        });
         Map<Integer, List<Director>> filmDirectorsMap = filmStorage.getAllFilmDirectors(films);
         films.forEach(film -> {
             Integer filmId = film.getId();
+            film.setGenres(filmGenresMap.getOrDefault(filmId, new ArrayList<>()));
             film.setDirectors(filmDirectorsMap.getOrDefault(filmId, new ArrayList<>()));
         });
         return (List<Film>) films;
