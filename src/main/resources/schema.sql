@@ -35,7 +35,6 @@ CREATE TABLE IF NOT EXISTS friendship (
    FOREIGN KEY (friend_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-
 CREATE TABLE IF NOT EXISTS film_genre (
     film_id BIGINT,
     genre_id BIGINT,
