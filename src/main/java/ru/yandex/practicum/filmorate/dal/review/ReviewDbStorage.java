@@ -106,8 +106,8 @@ public class ReviewDbStorage extends BaseRepository<Review> implements ReviewSto
                     reviewId, userId);
             jdbc.update("UPDATE reviews SET useful = useful - 1 WHERE reviews_id = ?", reviewId);
         } else if (currentLike) {
-            jdbc.update("UPDATE review_likes SET is_positive = FALSE WHERE review_id = ? AND user_id = ?"
-                    , reviewId, userId);
+            jdbc.update("UPDATE review_likes SET is_positive = FALSE WHERE review_id = ? AND user_id = ?",
+                    reviewId, userId);
             jdbc.update("UPDATE reviews SET useful = useful - 2 WHERE reviews_id = ?", reviewId);
         }
     }
