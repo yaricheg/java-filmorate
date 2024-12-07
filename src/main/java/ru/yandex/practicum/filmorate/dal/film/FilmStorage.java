@@ -19,6 +19,10 @@ public interface FilmStorage {
 
     Collection<Film> getFilms();
 
+    Collection<Film> getFilmsByIdDirectorSortYear(int id);
+
+    Collection<Film> getFilmsByIdDirectorsSortLike(int id);
+
     void addLike(Integer filmId, Integer userId);
 
     void deleteLike(Integer filmId, Integer userId);
@@ -26,6 +30,8 @@ public interface FilmStorage {
     Collection<Genre> getAllFilmGenresByFilmId(Integer filmId);
 
     Map<Integer, List<Genre>> getAllFilmGenres(Collection<Film> films);
+
+    Map<Integer, List<Director>> getAllFilmDirectors(Collection<Film> films);
 
     Collection<Film> getMostPopular(Integer count);
 
