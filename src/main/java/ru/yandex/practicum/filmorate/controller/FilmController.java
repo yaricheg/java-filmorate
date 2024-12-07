@@ -9,6 +9,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.film.FilmService;
 
 import java.util.Collection;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @RestController
@@ -28,6 +29,17 @@ public class FilmController {
     public Film getFilm(@PathVariable Integer id) {
         log.debug("Просмотр всех фильмов");
         return filmService.getFilmById(id);
+    }
+
+    @GetMapping("/director/{directorId}")
+    public Collection<Film> getFilmByDirector(@PathVariable Integer directorId,
+                                              @RequestParam String sortBy) {
+        if (sortBy.equals("year")) {
+            log.debug("Возвращаем фильмы режиссера с id {} с сортировкой по годам", directorId);
+            return filmService.getFilmsByIdDirectorSortYear(directorId);
+        }
+        log.debug("Возвращаем фильмы режиссера с id {} с сортировкой по лайкам", directorId);
+        return filmService.getFilmsByIdDirectorsSortLike(directorId);
     }
 
 
