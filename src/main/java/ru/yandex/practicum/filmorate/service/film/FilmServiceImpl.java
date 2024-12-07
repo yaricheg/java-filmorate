@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.service.film;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.dal.film.FilmStorage;
 import ru.yandex.practicum.filmorate.model.Genre;
@@ -60,15 +61,28 @@ public class FilmServiceImpl implements FilmService {
         filmStorage.deleteLike(film.getId(), user.getId());
     }
 
+    @Override
     public Collection<Film> topFilms(Integer count) {
         return toFilmsDto(filmStorage.getMostPopular(count));
     }
 
+    @Override
+    public Collection<Film> getFilmsByIdDirectorSortYear(int id) {
+        return toFilmsDto(filmStorage.getFilmsByIdDirectorSortYear(id));
+    }
+
+    @Override
+    public Collection<Film> getFilmsByIdDirectorsSortLike(int id) {
+        return toFilmsDto(filmStorage.getFilmsByIdDirectorsSortLike(id));
+    }
+
     private List<Film> toFilmsDto(Collection<Film> films) {
         Map<Integer, List<Genre>> filmGenresMap = filmStorage.getAllFilmGenres(films);
+        Map<Integer, List<Director>> filmDirectorsMap = filmStorage.getAllFilmDirectors(films);
         films.forEach(film -> {
             Integer filmId = film.getId();
             film.setGenres(filmGenresMap.getOrDefault(filmId, new ArrayList<>()));
+            film.setDirectors(filmDirectorsMap.getOrDefault(filmId, new ArrayList<>()));
         });
         return (List<Film>) films;
     }

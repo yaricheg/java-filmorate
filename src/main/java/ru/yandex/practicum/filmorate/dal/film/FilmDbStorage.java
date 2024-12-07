@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.dal.BaseRepository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.mappers.DirectorRowMapper;
 import ru.yandex.practicum.filmorate.mappers.GenreRowMapper;
 import ru.yandex.practicum.filmorate.mappers.UserRowMapper;
 import ru.yandex.practicum.filmorate.model.*;
@@ -40,6 +41,24 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
             "ORDER BY COUNT(user_id) DESC) " +
             "LIMIT ? ";
 
+    private static final String GET_DIRECTOR_ID_SORT_YEAR = "SELECT f.*, m.id AS mpa_id, m.name AS mpa_name " +
+            "FROM films f LEFT JOIN mpa m ON f.mpa_id = m.id " +
+            "WHERE f.ID IN " +
+            "(SELECT fd.film_id " +
+            "FROM FILM_DIRECTORS fd " +
+            "WHERE fd.director_id = ?) " +
+            "ORDER BY RELEASE_DATE";
+
+    private static final String GET_DIRECTOR_ID_SORT_LIKE = "SELECT f.*, m.id AS mpa_id, m.name AS mpa_name " +
+            "FROM films f LEFT JOIN mpa m ON f.mpa_id = m.id " +
+            "WHERE f.id IN (SELECT film_id " +
+            "FROM likes " +
+            "GROUP BY film_id " +
+            "ORDER BY COUNT(user_id) DESC) " +
+            "AND f.id IN (SELECT fd.film_id " +
+            "FROM FILM_DIRECTORS fd " +
+            "WHERE fd.director_id = ?)";
+
 
     public FilmDbStorage(JdbcTemplate jdbc,
                          RowMapper<Film> mapper) {
@@ -59,12 +78,14 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
         ));
         film.setId(id);
         saveGenres(film);
+        saveDirectors(film);
         return getFilmById(film.getId());
     }
 
     @Override
     public Film update(Film film) {
         jdbc.update("delete from FILM_GENRE where FILM_ID = ?", film.getId());
+        jdbc.update("delete from FILM_DIRECTORS where FILM_ID = ?", film.getId());
         update(
                 UPDATE_QUERY,
                 film.getName(),
@@ -76,6 +97,7 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
                 film.getId()
         );
         saveGenres(film);
+        saveDirectors(film);
         return getFilmById(film.getId());
     }
 
@@ -94,13 +116,29 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
         Film film = optionalFilm.get();
         List<Genre> genres = getAllFilmGenresByFilmId(filmId).stream().toList();
         film.setGenres(genres);
+        List<Director> directors = getAllFilmDirectorsByFilmId(filmId).stream().toList();
+        film.setDirectors(directors);
         return film;
     }
 
     @Override
     public Collection<Film> getFilms() {
-        Collection<Film> films = findMany(GET_ALL_QUERY);
-        return films;
+        return findMany(GET_ALL_QUERY);
+    }
+
+    @Override
+    public Collection<Film> getFilmsByIdDirectorSortYear(int id) {
+        return findMany(
+                GET_DIRECTOR_ID_SORT_YEAR,
+                id);
+    }
+
+    @Override
+    public Collection<Film> getFilmsByIdDirectorsSortLike(int id) {
+        return findMany(
+                GET_DIRECTOR_ID_SORT_LIKE,
+                id
+        );
     }
 
     @Override
@@ -127,6 +165,12 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
         return jdbc.query(getAllByIdQuery, new GenreRowMapper(), filmId);
     }
 
+    private Collection<Director> getAllFilmDirectorsByFilmId(Integer filmId) {
+        final String getAllByIdQuery = "SELECT d.id, d.name AS name FROM film_directors AS fd LEFT JOIN directors d ON " +
+                "fd.director_id = d.id WHERE film_id = ?";
+        return jdbc.query(getAllByIdQuery, new DirectorRowMapper(), filmId);
+    }
+
 
     @Override
     public Map<Integer, List<Genre>> getAllFilmGenres(Collection<Film> films) {
@@ -148,6 +192,28 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
             filmGenreMap.get(filmId).add(genre);
         });
         return filmGenreMap;
+    }
+
+    @Override
+    public Map<Integer, List<Director>> getAllFilmDirectors(Collection<Film> films) {
+        final String getAllQuery = "SELECT fd.film_id, d.id AS director_id, d.name AS name FROM film_directors fd " +
+                "LEFT JOIN directors d ON fd.director_id = d.id WHERE fd.film_id IN (%s)";
+
+        Map<Integer, List<Director>> filmDirectorMap = new HashMap<>();
+        Collection<String> ids = films.stream()
+                .map(film -> String.valueOf(film.getId()))
+                .toList();
+
+        jdbc.query(String.format(getAllQuery, String.join(",", ids)), rs -> {
+            Director director = new Director(rs.getInt("director_id"),
+                    rs.getString("name"));
+
+            Integer filmId = rs.getInt("film_id");
+
+            filmDirectorMap.putIfAbsent(filmId, new ArrayList<>());
+            filmDirectorMap.get(filmId).add(director);
+        });
+        return filmDirectorMap;
     }
 
     @Override
@@ -196,6 +262,33 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
             log.warn("Жанр уже существует");
         } catch (DataAccessException e) {
             throw new ValidationException("Введите правильный id жанра");
+        }
+    }
+
+    private void saveDirectors(Film film) {
+        try {
+            final Integer filmId = film.getId();
+            final List<Director> directors = film.getDirectors();
+            if (directors == null || directors.isEmpty()) {
+                return;
+            }
+            final ArrayList<Director> directorsList = new ArrayList<>(directors);
+            jdbc.batchUpdate(
+                    "insert into FILM_DIRECTORS (FILM_ID, DIRECTOR_ID) values (?, ?)",
+                    new BatchPreparedStatementSetter() {
+                        public void setValues(PreparedStatement ps, int i) throws SQLException {
+                            ps.setInt(1, filmId);
+                            ps.setInt(2, directorsList.get(i).getId());
+                        }
+
+                        public int getBatchSize() {
+                            return directorsList.size();
+                        }
+                    });
+        } catch (DuplicateKeyException e) {
+            log.warn("У данного режиссера уже есть фильм {}", film);
+        } catch (DataAccessException e) {
+            throw new ValidationException("Введите правильный id режиссера");
         }
     }
 

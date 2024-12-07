@@ -30,6 +30,17 @@ public class FilmController {
         return filmService.getFilmById(id);
     }
 
+    @GetMapping("/director/{directorId}")
+    public Collection<Film> getFilmByDirector(@PathVariable Integer directorId,
+                                              @RequestParam String sortBy) {
+        if (sortBy.equals("year")) {
+            log.debug("Возвращаем фильмы режиссера с id {} с сортировкой по годам", directorId);
+            return filmService.getFilmsByIdDirectorSortYear(directorId);
+        }
+        log.debug("Возвращаем фильмы режиссера с id {} с сортировкой по лайкам", directorId);
+        return filmService.getFilmsByIdDirectorsSortLike(directorId);
+    }
+
 
     @PostMapping
     public Film create(@RequestBody Film film) {
