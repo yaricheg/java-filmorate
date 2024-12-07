@@ -34,13 +34,13 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
     private static final String UPDATE_QUERY = "UPDATE films SET name = ?, release_date = ?, description = ?, " +
             "duration = ?, mpa_id = ?, rate = ? WHERE id = ?";
 
-    private static final String GET_MOST_POPULAR = "SELECT f.*, m.id AS mpa_id, m.name AS mpa_name " +
-            "FROM films f LEFT JOIN mpa m ON f.mpa_id = m.id " +
-            "WHERE f.id IN (SELECT film_id " +
-            "FROM likes " +
-            "GROUP BY film_id " +
-            "ORDER BY COUNT(user_id) DESC) " +
-            "LIMIT ? ";
+    private static final String GET_MOST_POPULAR = "SELECT f.*, m.id AS mpa_id, m.name AS mpa_name, COUNT(l.user_id) AS likes_count " +
+            "FROM films f " +
+            "LEFT JOIN mpa m ON f.mpa_id = m.id " +
+            "LEFT JOIN likes l ON f.id = l.film_id " +
+            "GROUP BY f.id, m.id, m.name " +
+            "ORDER BY likes_count DESC, f.id " +
+            "LIMIT ?; ";
 
     private static final String GET_DIRECTOR_ID_SORT_YEAR = "SELECT f.*, m.id AS mpa_id, m.name AS mpa_name " +
             "FROM films f LEFT JOIN mpa m ON f.mpa_id = m.id " +
