@@ -10,12 +10,12 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.UserNotFound;
 import ru.yandex.practicum.filmorate.mappers.EventRowMapper;
-import ru.yandex.practicum.filmorate.mappers.EventRowMapper;
 import ru.yandex.practicum.filmorate.mappers.UserRowMapper;
 import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.sql.PreparedStatement;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Objects;
 
@@ -66,17 +66,17 @@ public class UserDbStorage implements UserStorage {
         return jdbcTemplate.query(ALL_USERS, new UserRowMapper());
     }
 
-        @Override
-        public User getUserById(Integer userId) {
-            try {
-                return jdbcTemplate.queryForObject(ALL_USERS.concat(" WHERE id = ?"), new UserRowMapper(), userId);
-            } catch (DataAccessException e) {
-                throw new UserNotFound("USER NOT FOUND");
-            }
+    @Override
+    public User getUserById(Integer userId) {
+        try {
+            return jdbcTemplate.queryForObject(ALL_USERS.concat(" WHERE id = ?"), new UserRowMapper(), userId);
+        } catch (DataAccessException e) {
+            throw new UserNotFound("USER NOT FOUND");
         }
+    }
 
     @Override
-    public void deleteUser(User user) {
+    public void deleteUser(Integer id) {
         final String deleteUserSql = "DELETE FROM users WHERE id = ?";
         int rowsAffected = jdbcTemplate.update(deleteUserSql, id);
 
@@ -131,23 +131,18 @@ public class UserDbStorage implements UserStorage {
 
     private void addEvent(Integer userId, String operation, Integer entityId) {
         String sql = "INSERT INTO events (timestamp, user_id, event_type, operation, entity_id) VALUES (?, ?, ?, ?, ?)";
+
         long timestamp = Instant.now().toEpochMilli();
 
         Event event = Event.builder()
                 .timestamp(timestamp)
                 .userId(userId)
-                .eventType("FRIEND")
+                .eventType("LIKE")
                 .operation(operation)
                 .entityId(entityId)
                 .build();
 
-        try {
-            jdbcTemplate.update(sql, timestamp, userId, "FRIEND", operation, entityId);
-        } catch (DataAccessException e) {
-            log.error("Ошибка при добавлении события: ", e);
-            throw new RuntimeException("Ошибка при добавлении события в базу данных", e);
-        }
+        jdbcTemplate.update(sql, timestamp, userId, "LIKE", operation, entityId);
     }
-
 
 }
