@@ -25,4 +25,6 @@ public interface FilmService {
 
     Collection<Film> getFilmsByIdDirectorsSortLike(int id);
 
+    Collection<Film> getCommonFilms(Integer userId, Integer friendId);
+
 }

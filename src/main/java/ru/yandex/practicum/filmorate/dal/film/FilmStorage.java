@@ -42,4 +42,6 @@ public interface FilmStorage {
 
     User getUserById(Integer userId);
 
+    Collection<Film> getCommonFilms(Integer userId, Integer friendId);
+
 }
