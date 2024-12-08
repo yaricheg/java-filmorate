@@ -1,6 +1,9 @@
 package ru.yandex.practicum.filmorate.dal.film;
 
-import ru.yandex.practicum.filmorate.model.*;
+import ru.yandex.practicum.filmorate.model.Director;
+import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.Collection;
 import java.util.List;
@@ -13,7 +16,7 @@ public interface FilmStorage {
 
     Film update(Film film);
 
-    void delete(Film film);
+    void delete(Integer id);
 
     Film getFilmById(Integer id);
 

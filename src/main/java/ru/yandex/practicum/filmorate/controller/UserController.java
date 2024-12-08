@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.UserChecker;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.user.UserService;
 
@@ -42,6 +43,16 @@ public class UserController {
         return userService.addFriend(id, friendId);
     }
 
+    @DeleteMapping("/{id}")
+    public void deleteUser(@PathVariable("id") Integer id) {
+        userService.deleteUser(id);
+    }
+
+    @GetMapping("/{id}")
+    public User findUser(@PathVariable("id") Integer id) {
+        return userService.findUser(id);
+    }
+
     @DeleteMapping("/{id}/friends/{friend_id}")
     public void deleteFriend(@PathVariable Integer id, @PathVariable("friend_id") Integer friendId) {
         userService.deleteFriend(id, friendId);
@@ -52,6 +63,10 @@ public class UserController {
         return userService.userFriends(id);
     }
 
+    @GetMapping("/{id}/feed")
+    public Collection<Event> getFriendEvents(@PathVariable Integer id) {
+        return userService.getEvents(id);
+    }
 
     @GetMapping("/{id}/friends/common/{otherId}")
     public Collection<User> findCommonFriends(@PathVariable Integer id, @PathVariable Integer otherId) {

@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.dal.film;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -13,10 +14,10 @@ import ru.yandex.practicum.filmorate.mappers.DirectorRowMapper;
 import ru.yandex.practicum.filmorate.mappers.GenreRowMapper;
 import ru.yandex.practicum.filmorate.mappers.UserRowMapper;
 import ru.yandex.practicum.filmorate.model.*;
-import org.springframework.dao.DuplicateKeyException;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.time.Instant;
 import java.util.*;
 
 
@@ -33,13 +34,13 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
     private static final String UPDATE_QUERY = "UPDATE films SET name = ?, release_date = ?, description = ?, " +
             "duration = ?, mpa_id = ?, rate = ? WHERE id = ?";
 
-    private static final String GET_MOST_POPULAR = "SELECT f.*, m.id AS mpa_id, m.name AS mpa_name " +
-            "FROM films f LEFT JOIN mpa m ON f.mpa_id = m.id " +
-            "WHERE f.id IN (SELECT film_id " +
-            "FROM likes " +
-            "GROUP BY film_id " +
-            "ORDER BY COUNT(user_id) DESC) " +
-            "LIMIT ? ";
+    private static final String GET_MOST_POPULAR = "SELECT f.*, m.id AS mpa_id, m.name AS mpa_name, COUNT(l.user_id) AS likes_count " +
+            "FROM films f " +
+            "LEFT JOIN mpa m ON f.mpa_id = m.id " +
+            "LEFT JOIN likes l ON f.id = l.film_id " +
+            "GROUP BY f.id, m.id, m.name " +
+            "ORDER BY likes_count DESC, f.id " +
+            "LIMIT ?; ";
 
     private static final String GET_DIRECTOR_ID_SORT_YEAR = "SELECT f.*, m.id AS mpa_id, m.name AS mpa_name " +
             "FROM films f LEFT JOIN mpa m ON f.mpa_id = m.id " +
@@ -102,9 +103,9 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
     }
 
     @Override
-    public void delete(Film film) {
-        String deleteFilmSql = "DELETE FROM films WHERE film_id = ?";
-        jdbc.update(deleteFilmSql, film.getId());
+    public void delete(Integer id) {
+        String deleteFilmSql = "DELETE FROM films WHERE id = ?";
+        jdbc.update(deleteFilmSql, id);
     }
 
     @Override
@@ -147,6 +148,7 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
         final String increaseRateQuery = "UPDATE films SET rate = rate + 1 WHERE id = ?";
         jdbc.update(insertQuery, filmId, userId);
         jdbc.update(increaseRateQuery, filmId);
+        addEvent(userId, "LIKE", "ADD", filmId);
     }
 
     @Override
@@ -155,6 +157,7 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
         final String decreaseRateQuery = "UPDATE films SET rate = rate - 1 WHERE id = ?";
         jdbc.update(deleteQuery, filmId, userId);
         jdbc.update(decreaseRateQuery, filmId);
+        addEvent(userId, "LIKE", "REMOVE", filmId);
     }
 
 
@@ -264,6 +267,23 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
             throw new ValidationException("Введите правильный id жанра");
         }
     }
+
+    private void addEvent(Integer userId, String eventType, String operation, Integer entityId) {
+        String sql = "INSERT INTO events (timestamp, user_id, event_type, operation, entity_id) VALUES (?, ?, ?, ?, ?)";
+
+        long timestamp = Instant.now().toEpochMilli();
+
+        Event event = Event.builder()
+                .timestamp(timestamp)
+                .userId(userId)
+                .eventType(eventType)
+                .operation(operation)
+                .entityId(entityId)
+                .build();
+
+        jdbc.update(sql, timestamp, userId, eventType, operation, entityId);
+    }
+
 
     private void saveDirectors(Film film) {
         try {

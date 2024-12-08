@@ -2,14 +2,17 @@ package ru.yandex.practicum.filmorate.service.film;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dal.film.FilmStorage;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.dal.film.FilmStorage;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class FilmServiceImpl implements FilmService {
@@ -43,8 +46,8 @@ public class FilmServiceImpl implements FilmService {
     }
 
     @Override
-    public void deleteFilm(Film film) {
-        filmStorage.delete(film);
+    public void deleteFilm(Integer id) {
+        filmStorage.delete(id);
     }
 
     @Override
