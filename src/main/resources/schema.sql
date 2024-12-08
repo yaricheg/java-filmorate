@@ -72,7 +72,7 @@ CREATE TABLE IF NOT EXISTS review_likes (
     FOREIGN KEY (review_id) REFERENCES reviews(reviews_id),
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
-  
+
 CREATE TABLE IF NOT EXISTS events (
     timestamp BIGINT,
     user_id BIGINT,

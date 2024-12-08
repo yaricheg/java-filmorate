@@ -8,8 +8,8 @@ import lombok.Data;
 public class Event {
     long timestamp;
     Integer userId;
-    String eventType;// одно из значениий LIKE, REVIEW или FRIEND
-    String operation;// одно из значениий REMOVE, ADD, UPDATE
-    Long eventId;//primary key
-    Integer entityId; // идентификатор сущности, с которой произошло событие
+    String eventType;
+    String operation;
+    Long eventId;
+    Integer entityId;
 }
