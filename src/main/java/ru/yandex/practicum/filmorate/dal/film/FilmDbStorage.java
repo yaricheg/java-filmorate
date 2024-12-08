@@ -11,6 +11,7 @@ import ru.yandex.practicum.filmorate.dal.BaseRepository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.mappers.DirectorRowMapper;
+import ru.yandex.practicum.filmorate.mappers.FilmRowMapper;
 import ru.yandex.practicum.filmorate.mappers.GenreRowMapper;
 import ru.yandex.practicum.filmorate.mappers.UserRowMapper;
 import ru.yandex.practicum.filmorate.model.*;
@@ -41,6 +42,14 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
             "GROUP BY f.id, m.id, m.name " +
             "ORDER BY likes_count DESC, f.id " +
             "LIMIT ?; ";
+
+    private static final String GET_COMMON_FILMS = " SELECT f.*, m.id AS mpa_id, m.name AS mpa_name FROM films f " +
+            "JOIN mpa m ON f.mpa_id = m.id " +
+            "JOIN likes l ON f.id = l.film_id " +
+            "WHERE l.user_id = ? OR l.user_id = ? " +
+            "GROUP BY f.id, m.id, m.name " +
+            "HAVING COUNT(DISTINCT l.user_id) = 2 " +
+            "ORDER BY COUNT(l.user_id) DESC";
 
     private static final String GET_DIRECTOR_ID_SORT_YEAR = "SELECT f.*, m.id AS mpa_id, m.name AS mpa_name " +
             "FROM films f LEFT JOIN mpa m ON f.mpa_id = m.id " +
@@ -238,6 +247,11 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
     public void deleteFilmGenres(Integer filmId) {
         final String deleteGenres = "delete from FILM_GENRE where FILM_ID = ?";
         jdbc.update(deleteGenres, filmId);
+    }
+
+    @Override
+    public Collection<Film> getCommonFilms(Integer userId, Integer friendId) {
+        return jdbc.query(GET_COMMON_FILMS, new FilmRowMapper(), userId, friendId);
     }
 
 
