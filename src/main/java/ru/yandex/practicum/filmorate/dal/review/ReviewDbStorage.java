@@ -59,8 +59,9 @@ public class ReviewDbStorage extends BaseRepository<Review> implements ReviewSto
     @Override
     public void delete(Integer id) {
         String deleteFilmSql = "DELETE FROM reviews WHERE reviews_id = ?";
+        int userId = getReviewById(id).getUserId();
         jdbc.update(deleteFilmSql, id);
-        addEvent(getReviewById(id).getUserId(), "REMOVE", id);
+        addEvent(userId, "REMOVE", id);
     }
 
     @Override
@@ -171,3 +172,5 @@ public class ReviewDbStorage extends BaseRepository<Review> implements ReviewSto
         jdbc.update(sql, timestamp, userId, "REVIEW", operation, entityId);
     }
 }
+
+

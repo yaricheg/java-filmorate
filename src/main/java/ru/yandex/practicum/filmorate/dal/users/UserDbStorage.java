@@ -137,12 +137,12 @@ public class UserDbStorage implements UserStorage {
         Event event = Event.builder()
                 .timestamp(timestamp)
                 .userId(userId)
-                .eventType("LIKE")
+                .eventType("FRIEND")
                 .operation(operation)
                 .entityId(entityId)
                 .build();
 
-        jdbcTemplate.update(sql, timestamp, userId, "LIKE", operation, entityId);
+        jdbcTemplate.update(sql, timestamp, userId, "FRIEND", operation, entityId);
     }
 
 }
