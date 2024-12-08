@@ -90,6 +90,11 @@ public class FilmServiceImpl implements FilmService {
         return (List<Film>) films;
     }
 
+    @Override
+    public Collection<Film> getCommonFilms(Integer userId, Integer friendId) {
+        return toFilmsDto(filmStorage.getCommonFilms(userId, friendId));
+    }
+
 }
 
 
