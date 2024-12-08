@@ -91,7 +91,7 @@ public class UserDbStorage implements UserStorage {
         final String addFriendSql = "INSERT INTO friendship (user_id, friend_id) VALUES (?, ?)";
         jdbcTemplate.update(addFriendSql, userId, friendId);
 
-        addEvent(userId, "FRIEND", "ADD", friendId);
+        addEvent(userId, "ADD", friendId);
     }
 
     @Override
@@ -99,7 +99,7 @@ public class UserDbStorage implements UserStorage {
         final String deleteFriendSql = "DELETE FROM friendship WHERE user_id = ? AND friend_id = ?";
         jdbcTemplate.update(deleteFriendSql, userId, friendId);
 
-        addEvent(userId, "FRIEND", "REMOVE", friendId);
+        addEvent(userId, "REMOVE", friendId);
     }
 
     @Override
@@ -114,9 +114,7 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public Collection<Event> getEvents(Integer userId) {
-        String sql = "SELECT e.* " +
-                "FROM events e " +
-                "WHERE e.user_id IN (SELECT friend_id FROM friendship WHERE user_id = ?) ";
+        String sql = "SELECT * FROM events WHERE user_id = ?";
         return jdbcTemplate.query(sql, new EventRowMapper(), userId);
     }
 
@@ -131,25 +129,24 @@ public class UserDbStorage implements UserStorage {
         return jdbcTemplate.query(sql, new UserRowMapper(), userId, otherId);
     }
 
-    private Event addEvent(Integer userId, String eventType, String operation, Integer entityId) {
+    private void addEvent(Integer userId, String operation, Integer entityId) {
         String sql = "INSERT INTO events (timestamp, user_id, event_type, operation, entity_id) VALUES (?, ?, ?, ?, ?)";
         long timestamp = Instant.now().toEpochMilli();
 
         Event event = Event.builder()
                 .timestamp(timestamp)
                 .userId(userId)
-                .eventType(eventType)
+                .eventType("FRIEND")
                 .operation(operation)
                 .entityId(entityId)
                 .build();
 
         try {
-            jdbcTemplate.update(sql, timestamp, userId, eventType, operation, entityId);
+            jdbcTemplate.update(sql, timestamp, userId, "FRIEND", operation, entityId);
         } catch (DataAccessException e) {
             log.error("Ошибка при добавлении события: ", e);
             throw new RuntimeException("Ошибка при добавлении события в базу данных", e);
         }
-        return event;
     }
 
 
