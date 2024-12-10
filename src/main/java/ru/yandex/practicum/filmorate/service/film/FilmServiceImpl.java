@@ -79,6 +79,17 @@ public class FilmServiceImpl implements FilmService {
         return toFilmsDto(filmStorage.getFilmsByIdDirectorsSortLike(id));
     }
 
+    @Override
+    public Collection<Film> getCommonFilms(Integer userId, Integer friendId) {
+        return toFilmsDto(filmStorage.getCommonFilms(userId, friendId));
+    }
+
+    @Override
+    public Collection<Film> searchFilms(String query, String by) {
+        return toFilmsDto(filmStorage.searchFilms(query, by));
+    }
+
+
     private List<Film> toFilmsDto(Collection<Film> films) {
         Map<Integer, List<Genre>> filmGenresMap = filmStorage.getAllFilmGenres(films);
         Map<Integer, List<Director>> filmDirectorsMap = filmStorage.getAllFilmDirectors(films);
@@ -89,12 +100,6 @@ public class FilmServiceImpl implements FilmService {
         });
         return (List<Film>) films;
     }
-
-    @Override
-    public Collection<Film> getCommonFilms(Integer userId, Integer friendId) {
-        return toFilmsDto(filmStorage.getCommonFilms(userId, friendId));
-    }
-
 }
 
 
