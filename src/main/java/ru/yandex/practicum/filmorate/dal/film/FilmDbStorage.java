@@ -254,6 +254,48 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
         return jdbc.query(GET_COMMON_FILMS, new FilmRowMapper(), userId, friendId);
     }
 
+    @Override
+    public Collection<Film> searchFilms(String query, String by) {
+        String conditions;
+        boolean searchByTitle = by.contains("title");
+        boolean searchByDirector = by.contains("director");
+        List<String> params = new ArrayList<>();
+
+        params.add("%" + query + "%");
+        if (searchByTitle && searchByDirector) {
+            conditions = "WHERE f.name LIKE ? OR d.name LIKE ?\n";
+            params.add("%" + query + "%");
+        } else if (searchByTitle) {
+            conditions = "WHERE f.name LIKE ?\n";
+        } else if (searchByDirector) {
+            conditions = "WHERE d.name LIKE ?\n";
+        } else {
+            throw new ValidationException("Параметр \"by\" некорректен");
+        }
+
+        String findByQuery = """
+                SELECT
+                    f.*,
+                    m.id AS mpa_id,
+                    m.name AS mpa_name,
+                    COUNT(l.user_id) AS likes_count,
+                    d.id AS director_id,
+                    d.name AS director_name
+                FROM films AS f
+                LEFT JOIN mpa AS m ON f.mpa_id = m.id
+                LEFT JOIN likes AS l ON f.id = l.film_id
+                LEFT JOIN film_directors AS fd ON f.id = fd.film_id
+                LEFT JOIN directors AS d ON fd.director_id = d.id
+                """
+                + conditions +
+                """
+                        GROUP BY f.id, m.name
+                        ORDER BY likes_count DESC;
+                        """;
+
+        return findMany(findByQuery, params.toArray());
+    }
+
 
     private void saveGenres(Film film) {
         try {

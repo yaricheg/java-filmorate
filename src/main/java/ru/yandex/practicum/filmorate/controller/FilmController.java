@@ -89,5 +89,13 @@ public class FilmController {
         log.debug("Просмотр всех общих фильмов");
         return filmService.getCommonFilms(userId, friendId);
     }
+
+    @GetMapping("/search")
+    public Collection<Film> searchFilms(
+            @RequestParam String query,
+            @RequestParam(defaultValue = "title,director") String by) {
+
+        return filmService.searchFilms(query, by);
+    }
 }
 
