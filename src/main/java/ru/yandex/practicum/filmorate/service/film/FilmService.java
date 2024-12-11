@@ -21,4 +21,11 @@ public interface FilmService {
 
     Collection<Film> topFilms(Integer count);
 
+    Collection<Film> getMostPopularFilms(Integer count);
+
+    Collection<Film> getPopularFilmsSortedByGenre(Integer count, Integer genreId);
+
+    Collection<Film> getPopularFilmsSortedByGenreAndYear(Integer count, Integer genreId, Integer year);
+
+    Collection<Film> getPopularFilmsSortedByYear(Integer count, Integer year);
 }
