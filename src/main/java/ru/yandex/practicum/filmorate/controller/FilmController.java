@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -66,12 +67,25 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public Collection<Film> topFilms(@RequestParam(defaultValue = "10") Integer count) {
+    public Collection<Film> topFilms(@RequestParam(defaultValue = "10000") Integer count,
+                                     @Positive @RequestParam(required = false) Integer genreId,
+                                     @Positive @RequestParam(required = false) Integer year) {
         if (count <= 0) {
             throw new ValidationException("Значение size должно быть больше нуля");
         }
-        return filmService.topFilms(count);
+        if (genreId == null && year == null) {
+            return filmService.getMostPopularFilms(count);
+        }
+        if (genreId != null && year == null) {
+            return filmService.getPopularFilmsSortedByGenre(count, genreId);
+        }
+        if (genreId != null && year != null) {
+            return filmService.getPopularFilmsSortedByGenreAndYear(count, genreId, year);
+        }
+        return filmService.getPopularFilmsSortedByYear(count, year);
     }
 
 }
+
+
 

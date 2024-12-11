@@ -64,6 +64,7 @@ public class FilmServiceImpl implements FilmService {
         return toFilmsDto(filmStorage.getMostPopular(count));
     }
 
+
     private List<Film> toFilmsDto(Collection<Film> films) {
         Map<Integer, List<Genre>> filmGenresMap = filmStorage.getAllFilmGenres(films);
         films.forEach(film -> {
@@ -71,6 +72,26 @@ public class FilmServiceImpl implements FilmService {
             film.setGenres(filmGenresMap.getOrDefault(filmId, new ArrayList<>()));
         });
         return (List<Film>) films;
+    }
+
+    @Override
+    public Collection<Film> getMostPopularFilms(Integer count) {
+        return toFilmsDto(filmStorage.getMostPopularFilms(count));
+    }
+
+    @Override
+    public Collection<Film> getPopularFilmsSortedByGenre(Integer count, Integer genreId) {
+        return toFilmsDto(filmStorage.getPopularFilmsSortedByGenre(count, genreId));
+    }
+
+    @Override
+    public Collection<Film> getPopularFilmsSortedByGenreAndYear(Integer count, Integer genreId, Integer year) {
+        return toFilmsDto(filmStorage.getPopularFilmsSortedByGenreAndYear(count, genreId, year));
+    }
+
+    @Override
+    public Collection<Film> getPopularFilmsSortedByYear(Integer count, Integer year) {
+        return toFilmsDto(filmStorage.getPopularFilmsSortedByYear(count, year));
     }
 
 }
