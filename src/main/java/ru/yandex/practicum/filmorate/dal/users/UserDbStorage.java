@@ -7,12 +7,15 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.mappers.FilmRowMapper;
 import ru.yandex.practicum.filmorate.mappers.UserRowMapper;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import lombok.extern.slf4j.Slf4j;
 
 import java.sql.PreparedStatement;
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 
 @Slf4j
@@ -113,4 +116,50 @@ public class UserDbStorage implements UserStorage {
         return jdbcTemplate.query(sql, new UserRowMapper(), userId, otherId);
     }
 
+    @Override
+    public List<Film> getFilmRecommendationsForUser(int userId) {
+        String sql = "SELECT DISTINCT f.id AS film_id, " +
+                "                f.name AS film_name, " +
+                "                f.description AS description, " +
+                "                f.release_date AS release_date, " +
+                "                f.duration AS duration, " +
+                "                f.rate AS rate, " +
+                "                m.id AS mpa_id, " +
+                "                m.name AS mpa_name " +
+                "FROM likes fl2 " +
+                "JOIN ( " +
+                "    SELECT fl1.user_id AS common_user_id, " +
+                "           COUNT(*) AS common_likes_cnt " +
+                "    FROM likes fl1 " +
+                "    JOIN ( " +
+                "        SELECT DISTINCT film_id " +
+                "        FROM likes " +
+                "        WHERE user_id = ? " +
+                "    ) AS ul ON fl1.film_id = ul.film_id " +
+                "    WHERE fl1.user_id != ? " +
+                "    GROUP BY fl1.user_id " +
+                "    HAVING COUNT(*) = ( " +
+                "        SELECT MAX(common_likes_cnt) " +
+                "        FROM ( " +
+                "            SELECT COUNT(*) AS common_likes_cnt " +
+                "            FROM likes fl1 " +
+                "            JOIN ( " +
+                "                SELECT DISTINCT film_id " +
+                "                FROM likes " +
+                "                WHERE user_id = ? " +
+                "            ) AS ul ON fl1.film_id = ul.film_id " +
+                "            WHERE fl1.user_id != ? " +
+                "            GROUP BY fl1.user_id " +
+                "        ) AS common_likes " +
+                "    ) " +
+                ") AS tcu ON fl2.user_id = tcu.common_user_id " +
+                "JOIN films f ON fl2.film_id = f.id " +
+                "JOIN mpa m ON f.mpa_id = m.id " +
+                "WHERE fl2.film_id NOT IN ( " +
+                "    SELECT film_id " +
+                "    FROM likes " +
+                "    WHERE user_id = ? " +
+                ")";
+        return jdbcTemplate.query(sql, new FilmRowMapper(), userId, userId, userId, userId, userId);
+    }
 }

@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.service.film;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.Collection;
+import java.util.List;
 
 public interface FilmService {
     Film saveFilm(Film film);
@@ -21,4 +22,5 @@ public interface FilmService {
 
     Collection<Film> topFilms(Integer count);
 
+    List<Film> toFilmsDto(Collection<Film> films);
 }

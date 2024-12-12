@@ -64,7 +64,8 @@ public class FilmServiceImpl implements FilmService {
         return toFilmsDto(filmStorage.getMostPopular(count));
     }
 
-    private List<Film> toFilmsDto(Collection<Film> films) {
+    @Override
+    public List<Film> toFilmsDto(Collection<Film> films) {
         Map<Integer, List<Genre>> filmGenresMap = filmStorage.getAllFilmGenres(films);
         films.forEach(film -> {
             Integer filmId = film.getId();

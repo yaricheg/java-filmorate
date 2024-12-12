@@ -1,8 +1,10 @@
 package ru.yandex.practicum.filmorate.dal.users;
 
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.Collection;
+import java.util.List;
 
 public interface UserStorage {
     Collection<User> getAll();
@@ -22,4 +24,6 @@ public interface UserStorage {
     void deleteUser(User user);
 
     User getUserById(Integer id);
+
+    List<Film> getFilmRecommendationsForUser(int userId);
 }

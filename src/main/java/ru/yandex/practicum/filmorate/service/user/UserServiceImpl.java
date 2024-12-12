@@ -1,10 +1,13 @@
 package ru.yandex.practicum.filmorate.service.user;
 
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.relational.core.sql.In;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.dal.users.UserStorage;
+import ru.yandex.practicum.filmorate.service.film.FilmService;
 
 import java.util.*;
 
@@ -72,5 +75,11 @@ public class UserServiceImpl implements UserService {
         User user = userStorage.getUserById(userId);
         User friend = userStorage.getUserById(otherId);
         return userStorage.commonFriends(user.getId(), friend.getId());
+    }
+
+    @Override
+    public List<Film> getFilmRecommendationsForUser(Integer userId) {
+        List<Film> films = userStorage.getFilmRecommendationsForUser(userId);
+        return films;
     }
 }

@@ -1,8 +1,10 @@
 package ru.yandex.practicum.filmorate.service.user;
 
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.Collection;
+import java.util.List;
 
 public interface UserService {
     Collection<User> getAllUser();
@@ -18,5 +20,9 @@ public interface UserService {
     Collection<User> userFriends(Integer id);
 
     Collection commonFriends(Integer userId, Integer otherId);
+
+    List<Film> getFilmRecommendationsForUser(Integer userId);
+
+
 
 }
