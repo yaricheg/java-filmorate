@@ -13,7 +13,7 @@ public interface FilmService {
 
     Film getFilmById(Integer id);
 
-    void deleteFilm(Film film);
+    void deleteFilm(Integer id);
 
     void addLike(Integer film, Integer user);
 
@@ -28,4 +28,12 @@ public interface FilmService {
     Collection<Film> getPopularFilmsSortedByGenreAndYear(Integer count, Integer genreId, Integer year);
 
     Collection<Film> getPopularFilmsSortedByYear(Integer count, Integer year);
+    Collection<Film> getFilmsByIdDirectorSortYear(int id);
+
+    Collection<Film> getFilmsByIdDirectorsSortLike(int id);
+
+    Collection<Film> getCommonFilms(Integer userId, Integer friendId);
+
+    Collection<Film> searchFilms(String query, String by);
+
 }

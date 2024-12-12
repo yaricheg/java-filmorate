@@ -17,6 +17,7 @@ public class Film {
     private LocalDate releaseDate;
     private Integer duration;
     private List<Genre> genres;
+    private List<Director> directors;
     private Mpa mpa;
     private Integer rate;
 
