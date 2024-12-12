@@ -28,6 +28,7 @@ public interface FilmService {
     Collection<Film> getPopularFilmsSortedByGenreAndYear(Integer count, Integer genreId, Integer year);
 
     Collection<Film> getPopularFilmsSortedByYear(Integer count, Integer year);
+
     Collection<Film> getFilmsByIdDirectorSortYear(int id);
 
     Collection<Film> getFilmsByIdDirectorsSortLike(int id);

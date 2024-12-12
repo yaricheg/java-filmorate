@@ -89,8 +89,6 @@ public class FilmServiceImpl implements FilmService {
         return toFilmsDto(filmStorage.searchFilms(query, by));
     }
 
-
-
     private List<Film> toFilmsDto(Collection<Film> films) {
         Map<Integer, List<Genre>> filmGenresMap = filmStorage.getAllFilmGenres(films);
         Map<Integer, List<Director>> filmDirectorsMap = filmStorage.getAllFilmDirectors(films);
