@@ -15,7 +15,6 @@ import ru.yandex.practicum.filmorate.mappers.FilmRowMapper;
 import ru.yandex.practicum.filmorate.mappers.GenreRowMapper;
 import ru.yandex.practicum.filmorate.mappers.UserRowMapper;
 import ru.yandex.practicum.filmorate.model.*;
-import org.springframework.dao.DuplicateKeyException;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;

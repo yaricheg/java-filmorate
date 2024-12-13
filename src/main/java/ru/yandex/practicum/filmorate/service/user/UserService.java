@@ -28,8 +28,6 @@ public interface UserService {
 
     List<Film> getFilmRecommendationsForUser(Integer userId);
 
-
-
     Collection<Event> getEvents(Integer userId);
 
 }
