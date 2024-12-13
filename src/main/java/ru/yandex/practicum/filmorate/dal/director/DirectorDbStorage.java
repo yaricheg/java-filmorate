@@ -5,6 +5,7 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.dal.BaseRepository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Director;
 
 import java.util.Collection;
@@ -13,7 +14,7 @@ import java.util.Optional;
 @Repository("directorDbStorage")
 public class DirectorDbStorage extends BaseRepository<Director> implements DirectorStorage {
 
-    private static final String GET_ALL_QUERY = "SELECT * FROM directors";
+    private static final String GET_ALL_QUERY = "SELECT * FROM directors ORDER BY id";
 
     private static final String GET_BY_ID_QUERY = "SELECT * FROM directors WHERE id = ?";
 
@@ -29,6 +30,9 @@ public class DirectorDbStorage extends BaseRepository<Director> implements Direc
 
     @Override
     public Director save(Director director) {
+        if (director.getName().isBlank()) {
+            throw new ValidationException("Имя не может быть пустым!");
+        }
         Integer id = Math.toIntExact(insert(
                 INSERT_QUERY,
                 director.getName()
