@@ -69,6 +69,7 @@ public class FilmServiceImpl implements FilmService {
         return toFilmsDto(filmStorage.getMostPopular(count));
     }
 
+
     @Override
     public Collection<Film> getFilmsByIdDirectorSortYear(int id) {
         return toFilmsDto(filmStorage.getFilmsByIdDirectorSortYear(id));
@@ -89,7 +90,7 @@ public class FilmServiceImpl implements FilmService {
         return toFilmsDto(filmStorage.searchFilms(query, by));
     }
 
-    private List<Film> toFilmsDto(Collection<Film> films) {
+    public List<Film> toFilmsDto(Collection<Film> films) {
         Map<Integer, List<Genre>> filmGenresMap = filmStorage.getAllFilmGenres(films);
         Map<Integer, List<Director>> filmDirectorsMap = filmStorage.getAllFilmDirectors(films);
         films.forEach(film -> {

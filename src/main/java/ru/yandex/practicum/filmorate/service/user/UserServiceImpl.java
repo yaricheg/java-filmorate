@@ -4,10 +4,12 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dal.users.UserStorage;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.util.Collection;
+
+import java.util.*;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -90,4 +92,10 @@ public class UserServiceImpl implements UserService {
         return userStorage.getEvents(userId);
     }
 
+
+    @Override
+    public List<Film> getFilmRecommendationsForUser(Integer userId) {
+        List<Film> films = userStorage.getFilmRecommendationsForUser(userId);
+        return films;
+    }
 }
