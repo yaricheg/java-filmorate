@@ -15,6 +15,7 @@ import ru.yandex.practicum.filmorate.mappers.FilmRowMapper;
 import ru.yandex.practicum.filmorate.mappers.GenreRowMapper;
 import ru.yandex.practicum.filmorate.mappers.UserRowMapper;
 import ru.yandex.practicum.filmorate.model.*;
+import org.springframework.dao.DuplicateKeyException;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -324,6 +325,8 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
         }
     }
 
+
+
     private void saveDirectors(Film film) {
         try {
             final Integer filmId = film.getId();
@@ -365,6 +368,61 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
                 .build();
 
         jdbc.update(sql, timestamp, userId, "LIKE", operation, entityId);
+    }
+
+    @Override
+    public Collection<Film> getMostPopularFilms(Integer count) {
+        return findMany(GET_MOST_POPULAR, count);
+    }
+
+    @Override
+    public Collection<Film> getPopularFilmsSortedByGenre(Integer count, Integer genreId) {
+        String sqlQuery = "SELECT " +
+                "f.*, " +
+                "m.id AS mpa_id, " +
+                "m.name AS mpa_name " +
+                "FROM films AS f " +
+                "LEFT JOIN film_genre fg ON f.id = fg.film_id " +
+                "LEFT JOIN likes l ON f.id = l.film_id " +
+                "JOIN mpa m ON m.id = f.mpa_id " +
+                "WHERE fg.genre_id = ? " +
+                "GROUP BY f.id, f.name, f.description, f.release_date, f.duration, f.mpa_id, f.rate, mpa_id, mpa_name " +
+                "ORDER BY COUNT(f.id) DESC " +
+                "LIMIT ?";
+        return findMany(sqlQuery, genreId, count);
+    }
+
+    @Override
+    public Collection<Film> getPopularFilmsSortedByGenreAndYear(Integer count, Integer genreId, Integer year) {
+        String sqlQuery = "SELECT " +
+                "f.*, " +
+                "m.id AS mpa_id, " +
+                "m.name AS mpa_name " +
+                "FROM films AS f " +
+                "LEFT JOIN film_genre fg ON f.id = fg.film_id " +
+                "LEFT JOIN likes l ON f.id = l.film_id " +
+                "JOIN mpa m ON m.id = f.mpa_id " +
+                "WHERE (fg.genre_id = ? AND EXTRACT(YEAR FROM f.release_date) = ?) " +
+                "GROUP BY f.id, f.name, f.description, f.release_date, f.duration, f.mpa_id, f.rate, mpa_id, mpa_name " +
+                "ORDER BY COUNT(f.id) DESC " +
+                "LIMIT ?";
+        return findMany(sqlQuery, genreId, year, count);
+    }
+
+    @Override
+    public Collection<Film> getPopularFilmsSortedByYear(Integer count, Integer year) {
+        String sqlQuery = "SELECT " +
+                "f.*, " +
+                "m.id AS mpa_id, " +
+                "m.name AS mpa_name " +
+                "FROM films AS f " +
+                "LEFT JOIN likes l ON f.id = l.film_id " +
+                "JOIN mpa m ON m.id = f.mpa_id " +
+                "WHERE EXTRACT(YEAR FROM f.release_date) = ? " +
+                "GROUP BY f.id, f.name, f.description, f.release_date, f.duration, f.mpa_id, f.rate, mpa_id, mpa_name " +
+                "ORDER BY COUNT(f.id) DESC " +
+                "LIMIT ?";
+        return findMany(sqlQuery, year, count);
     }
 
 }
