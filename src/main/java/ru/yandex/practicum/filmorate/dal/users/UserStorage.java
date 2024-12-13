@@ -1,12 +1,15 @@
 package ru.yandex.practicum.filmorate.dal.users;
 
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.Collection;
 import java.util.List;
 
 public interface UserStorage {
+    Collection<Event> getEvents(Integer userId);
+
     Collection<User> getAll();
 
     User create(User user);
@@ -21,7 +24,7 @@ public interface UserStorage {
 
     Collection commonFriends(Integer userId, Integer otherId);
 
-    void deleteUser(User user);
+    void deleteUser(Integer id);
 
     User getUserById(Integer id);
 

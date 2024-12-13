@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -30,6 +31,17 @@ public class FilmController {
         return filmService.getFilmById(id);
     }
 
+    @GetMapping("/director/{directorId}")
+    public Collection<Film> getFilmByDirector(@PathVariable Integer directorId,
+                                              @RequestParam String sortBy) {
+        if (sortBy.equals("year")) {
+            log.debug("Возвращаем фильмы режиссера с id {} с сортировкой по годам", directorId);
+            return filmService.getFilmsByIdDirectorSortYear(directorId);
+        }
+        log.debug("Возвращаем фильмы режиссера с id {} с сортировкой по лайкам", directorId);
+        return filmService.getFilmsByIdDirectorsSortLike(directorId);
+    }
+
 
     @PostMapping
     public Film create(@RequestBody Film film) {
@@ -47,10 +59,10 @@ public class FilmController {
         return correctFilm;
     }
 
-    @DeleteMapping
-    public void delete(@RequestBody Film deleteFilm) {
-        filmService.deleteFilm(deleteFilm);
-        log.info("Удален фильм.", deleteFilm);
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable Integer id) {
+        filmService.deleteFilm(id);
+        log.info("Удален фильм.", id);
     }
 
     @PutMapping("/{id}/like/{userId}")
@@ -66,12 +78,38 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public Collection<Film> topFilms(@RequestParam(defaultValue = "10") Integer count) {
+    public Collection<Film> topFilms(@RequestParam(defaultValue = "10000") Integer count,
+                                     @Positive @RequestParam(required = false) Integer genreId,
+                                     @Positive @RequestParam(required = false) Integer year) {
         if (count <= 0) {
             throw new ValidationException("Значение size должно быть больше нуля");
         }
-        return filmService.topFilms(count);
+        if (genreId == null && year == null) {
+            return filmService.getMostPopularFilms(count);
+        }
+        if (genreId != null && year == null) {
+            return filmService.getPopularFilmsSortedByGenre(count, genreId);
+        }
+        if (genreId != null && year != null) {
+            return filmService.getPopularFilmsSortedByGenreAndYear(count, genreId, year);
+        }
+        return filmService.getPopularFilmsSortedByYear(count, year);
     }
 
+    @GetMapping("/common")
+    public Collection<Film> getCommonFilms(@RequestParam Integer userId, @RequestParam Integer friendId) {
+        log.debug("Просмотр всех общих фильмов");
+        return filmService.getCommonFilms(userId, friendId);
+    }
+
+    @GetMapping("/search")
+    public Collection<Film> searchFilms(
+            @RequestParam String query,
+            @RequestParam(defaultValue = "title,director") String by) {
+
+        return filmService.searchFilms(query, by);
+    }
 }
+
+
 
