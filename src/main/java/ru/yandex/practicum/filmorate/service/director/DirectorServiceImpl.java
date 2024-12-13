@@ -15,7 +15,6 @@ public class DirectorServiceImpl implements DirectorService {
         this.directorStorage = directorStorage;
     }
 
-
     @Override
     public Director save(Director director) {
         return directorStorage.save(director);

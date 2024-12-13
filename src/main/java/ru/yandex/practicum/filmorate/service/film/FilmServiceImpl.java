@@ -2,14 +2,17 @@ package ru.yandex.practicum.filmorate.service.film;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dal.film.FilmStorage;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.dal.film.FilmStorage;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class FilmServiceImpl implements FilmService {
@@ -43,8 +46,8 @@ public class FilmServiceImpl implements FilmService {
     }
 
     @Override
-    public void deleteFilm(Film film) {
-        filmStorage.delete(film);
+    public void deleteFilm(Integer id) {
+        filmStorage.delete(id);
     }
 
     @Override
@@ -66,6 +69,7 @@ public class FilmServiceImpl implements FilmService {
         return toFilmsDto(filmStorage.getMostPopular(count));
     }
 
+
     @Override
     public Collection<Film> getFilmsByIdDirectorSortYear(int id) {
         return toFilmsDto(filmStorage.getFilmsByIdDirectorSortYear(id));
@@ -76,7 +80,17 @@ public class FilmServiceImpl implements FilmService {
         return toFilmsDto(filmStorage.getFilmsByIdDirectorsSortLike(id));
     }
 
-    private List<Film> toFilmsDto(Collection<Film> films) {
+    @Override
+    public Collection<Film> getCommonFilms(Integer userId, Integer friendId) {
+        return toFilmsDto(filmStorage.getCommonFilms(userId, friendId));
+    }
+
+    @Override
+    public Collection<Film> searchFilms(String query, String by) {
+        return toFilmsDto(filmStorage.searchFilms(query, by));
+    }
+
+    public List<Film> toFilmsDto(Collection<Film> films) {
         Map<Integer, List<Genre>> filmGenresMap = filmStorage.getAllFilmGenres(films);
         Map<Integer, List<Director>> filmDirectorsMap = filmStorage.getAllFilmDirectors(films);
         films.forEach(film -> {
@@ -85,6 +99,26 @@ public class FilmServiceImpl implements FilmService {
             film.setDirectors(filmDirectorsMap.getOrDefault(filmId, new ArrayList<>()));
         });
         return (List<Film>) films;
+    }
+
+    @Override
+    public Collection<Film> getMostPopularFilms(Integer count) {
+        return toFilmsDto(filmStorage.getMostPopularFilms(count));
+    }
+
+    @Override
+    public Collection<Film> getPopularFilmsSortedByGenre(Integer count, Integer genreId) {
+        return toFilmsDto(filmStorage.getPopularFilmsSortedByGenre(count, genreId));
+    }
+
+    @Override
+    public Collection<Film> getPopularFilmsSortedByGenreAndYear(Integer count, Integer genreId, Integer year) {
+        return toFilmsDto(filmStorage.getPopularFilmsSortedByGenreAndYear(count, genreId, year));
+    }
+
+    @Override
+    public Collection<Film> getPopularFilmsSortedByYear(Integer count, Integer year) {
+        return toFilmsDto(filmStorage.getPopularFilmsSortedByYear(count, year));
     }
 
 }

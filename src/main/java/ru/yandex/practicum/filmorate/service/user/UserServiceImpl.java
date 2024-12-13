@@ -2,9 +2,12 @@ package ru.yandex.practicum.filmorate.service.user;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.dal.users.UserStorage;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Event;
+import ru.yandex.practicum.filmorate.model.User;
+
 
 import java.util.*;
 
@@ -24,6 +27,16 @@ public class UserServiceImpl implements UserService {
     @Override
     public User createUser(User user) {
         return userStorage.create(user);
+    }
+
+    @Override
+    public void deleteUser(Integer id) {
+        userStorage.deleteUser(id);
+    }
+
+    @Override
+    public User findUser(Integer id) {
+        return userStorage.getUserById(id);
     }
 
     @Override
@@ -72,5 +85,17 @@ public class UserServiceImpl implements UserService {
         User user = userStorage.getUserById(userId);
         User friend = userStorage.getUserById(otherId);
         return userStorage.commonFriends(user.getId(), friend.getId());
+    }
+
+    @Override
+    public Collection<Event> getEvents(Integer userId) {
+        return userStorage.getEvents(userId);
+    }
+
+
+    @Override
+    public List<Film> getFilmRecommendationsForUser(Integer userId) {
+        List<Film> films = userStorage.getFilmRecommendationsForUser(userId);
+        return films;
     }
 }
