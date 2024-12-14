@@ -7,7 +7,6 @@ import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.dal.BaseRepository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mappers.ReviewRowMapper;
-import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.Review;
 
 import java.time.Instant;
@@ -158,16 +157,7 @@ public class ReviewDbStorage extends BaseRepository<Review> implements ReviewSto
 
     private void addEvent(Integer userId, String operation, Integer entityId) {
         String sql = "INSERT INTO events (timestamp, user_id, event_type, operation, entity_id) VALUES (?, ?, ?, ?, ?)";
-
         long timestamp = Instant.now().toEpochMilli();
-
-        Event event = Event.builder()
-                .timestamp(timestamp)
-                .userId(userId)
-                .eventType("REVIEW")
-                .operation(operation)
-                .entityId(entityId)
-                .build();
 
         jdbc.update(sql, timestamp, userId, "REVIEW", operation, entityId);
     }

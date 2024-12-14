@@ -8,12 +8,12 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.mappers.FilmRowMapper;
 import ru.yandex.practicum.filmorate.exception.UserNotFound;
 import ru.yandex.practicum.filmorate.mappers.EventRowMapper;
+import ru.yandex.practicum.filmorate.mappers.FilmRowMapper;
 import ru.yandex.practicum.filmorate.mappers.UserRowMapper;
-import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Event;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.sql.PreparedStatement;
@@ -117,8 +117,20 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public Collection<Event> getEvents(Integer userId) {
-        String sql = "SELECT * FROM events WHERE user_id = ?";
-        return jdbcTemplate.query(sql, new EventRowMapper(), userId);
+        log.info("Просматривают feed");
+        String sql = """
+                SELECT e.*
+                FROM events e
+                WHERE e.user_id = ?
+                UNION ALL
+                SELECT e.*
+                FROM events e
+                INNER JOIN friendship f ON e.user_id = f.friend_id
+                WHERE f.user_id = ? AND e.event_type IN ('LIKE', 'REVIEW')
+                ORDER BY timestamp ASC
+                """;
+        getUserById(userId);
+        return jdbcTemplate.query(sql, new EventRowMapper(), userId, userId);
     }
 
     @Override
@@ -181,16 +193,7 @@ public class UserDbStorage implements UserStorage {
 
     private void addEvent(Integer userId, String operation, Integer entityId) {
         String sql = "INSERT INTO events (timestamp, user_id, event_type, operation, entity_id) VALUES (?, ?, ?, ?, ?)";
-
         long timestamp = Instant.now().toEpochMilli();
-
-        Event event = Event.builder()
-                .timestamp(timestamp)
-                .userId(userId)
-                .eventType("FRIEND")
-                .operation(operation)
-                .entityId(entityId)
-                .build();
 
         jdbcTemplate.update(sql, timestamp, userId, "FRIEND", operation, entityId);
     }
