@@ -117,6 +117,7 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public Collection<Event> getEvents(Integer userId) {
+        getUserById(userId);
         String sql = "SELECT * FROM events WHERE user_id = ?";
         return jdbcTemplate.query(sql, new EventRowMapper(), userId);
     }

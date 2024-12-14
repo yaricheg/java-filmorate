@@ -40,7 +40,7 @@ public class ReviewDbStorage extends BaseRepository<Review> implements ReviewSto
                 review.getFilmId()
         ));
         review.setReviewId(id);
-        addEvent(review.getUserId(), "ADD", review.getReviewId());
+        addEvent(getReviewById(review.getReviewId()).getUserId(), "ADD", review.getReviewId());
         return getReviewById(review.getReviewId());
     }
 
@@ -52,7 +52,7 @@ public class ReviewDbStorage extends BaseRepository<Review> implements ReviewSto
                 review.getIsPositive(),
                 review.getReviewId()
         );
-        addEvent(review.getUserId(), "UPDATE", review.getReviewId());
+        addEvent(getReviewById(review.getReviewId()).getUserId(), "UPDATE", review.getReviewId());
         return getReviewById(review.getReviewId());
     }
 
