@@ -14,10 +14,7 @@ import ru.yandex.practicum.filmorate.mappers.DirectorRowMapper;
 import ru.yandex.practicum.filmorate.mappers.FilmRowMapper;
 import ru.yandex.practicum.filmorate.mappers.GenreRowMapper;
 import ru.yandex.practicum.filmorate.mappers.UserRowMapper;
-import ru.yandex.practicum.filmorate.model.Director;
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.*;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -125,7 +122,7 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
     public Film getFilmById(Integer filmId) {
         Optional<Film> optionalFilm = findOne(GET_ALL_QUERY.concat(" WHERE f.id = ?"), filmId);
         if (optionalFilm.isEmpty()) {
-            throw new NotFoundException("Фильм под id=%s не найден");
+            throw new NotFoundException("Фильм c id " + filmId + " не найден");
         }
         Film film = optionalFilm.get();
         List<Genre> genres = getAllFilmGenresByFilmId(filmId).stream().toList();
@@ -157,9 +154,15 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
 
     @Override
     public void addLike(Integer filmId, Integer userId) {
+        final String existsQuery = "SELECT COUNT(*) FROM likes WHERE film_id = ? AND user_id = ?";
         final String insertQuery = "INSERT INTO likes (film_id, user_id) values (?, ?)";
         final String increaseRateQuery = "UPDATE films SET rate = rate + 1 WHERE id = ?";
-        jdbc.update(insertQuery, filmId, userId);
+
+        Integer exists = jdbc.queryForObject(existsQuery, Integer.class, filmId, userId);
+        if (exists == 0) {
+            jdbc.update(insertQuery, filmId, userId);
+        }
+
         jdbc.update(increaseRateQuery, filmId);
         addEvent(userId, "ADD", filmId);
     }
@@ -264,15 +267,16 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
         boolean searchByTitle = by.contains("title");
         boolean searchByDirector = by.contains("director");
         List<String> params = new ArrayList<>();
+        query = query.toLowerCase();
 
         params.add("%" + query + "%");
         if (searchByTitle && searchByDirector) {
-            conditions = "WHERE f.name LIKE ? OR d.name LIKE ? ";
+            conditions = "WHERE LOWER(f.name) LIKE ? OR LOWER(d.name) LIKE ?\n";
             params.add("%" + query + "%");
         } else if (searchByTitle) {
-            conditions = "WHERE f.name LIKE ? ";
+            conditions = "WHERE LOWER(f.name) LIKE ?\n";
         } else if (searchByDirector) {
-            conditions = "WHERE d.name LIKE ? ";
+            conditions = "WHERE LOWER(d.name) LIKE ?\n";
         } else {
             throw new ValidationException("Параметр \"by\" некорректен");
         }
@@ -293,11 +297,11 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
                 """
                 + conditions +
                 """
-                        GROUP BY f.id, m.name
-                        ORDER BY likes_count DESC;
-                        """;
-
-        return findMany(findByQuery, params.toArray());
+                GROUP BY f.id, m.name
+                ORDER BY likes_count DESC;
+                """;
+        Collection<Film> films = findMany(findByQuery, params.toArray());
+        return films;
     }
 
 
@@ -327,6 +331,7 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
             throw new ValidationException("Введите правильный id жанра");
         }
     }
+
 
 
     private void saveDirectors(Film film) {
