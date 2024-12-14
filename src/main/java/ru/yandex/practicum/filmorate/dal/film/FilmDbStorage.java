@@ -94,6 +94,7 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
 
     @Override
     public Film update(Film film) {
+        getFilmById(film.getId());
         jdbc.update("delete from FILM_GENRE where FILM_ID = ?", film.getId());
         jdbc.update("delete from FILM_DIRECTORS where FILM_ID = ?", film.getId());
         update(
@@ -121,7 +122,7 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
     public Film getFilmById(Integer filmId) {
         Optional<Film> optionalFilm = findOne(GET_ALL_QUERY.concat(" WHERE f.id = ?"), filmId);
         if (optionalFilm.isEmpty()) {
-            throw new NotFoundException("Фильм под id=%s не найден");
+            throw new NotFoundException("Фильм c id " + filmId + " не найден");
         }
         Film film = optionalFilm.get();
         List<Genre> genres = getAllFilmGenresByFilmId(filmId).stream().toList();
