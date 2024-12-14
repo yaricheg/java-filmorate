@@ -60,8 +60,8 @@ CREATE TABLE IF NOT EXISTS reviews (
    user_id BIGINT NOT NULL,
    film_id BIGINT NOT NULL,
    useful BIGINT DEFAULT 0,
-   FOREIGN KEY (film_id) REFERENCES films(id),
-   FOREIGN KEY (user_id) REFERENCES users(id)
+   FOREIGN KEY (film_id) REFERENCES films(id) ON DELETE CASCADE,
+   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS review_likes (
@@ -69,8 +69,8 @@ CREATE TABLE IF NOT EXISTS review_likes (
     user_id BIGINT NOT NULL,
     is_positive BOOLEAN NOT NULL,
     PRIMARY KEY (review_id, user_id),
-    FOREIGN KEY (review_id) REFERENCES reviews(reviews_id),
-    FOREIGN KEY (user_id) REFERENCES users(id)
+    FOREIGN KEY (review_id) REFERENCES reviews(reviews_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS events (
