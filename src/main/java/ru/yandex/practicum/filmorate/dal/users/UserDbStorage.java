@@ -118,17 +118,16 @@ public class UserDbStorage implements UserStorage {
     @Override
     public Collection<Event> getEvents(Integer userId) {
         log.info("Просматривают feed");
-        String sql = """
-        SELECT e.*
-        FROM events e
-        WHERE e.user_id = ?
-        UNION ALL
-        SELECT e.*
-        FROM events e
-        INNER JOIN friendship f ON e.user_id = f.friend_id
-        WHERE f.user_id = ? AND e.event_type IN ('LIKE', 'REVIEW')
-        ORDER BY timestamp ASC
-        """;
+        String sql = "SELECT * FROM events WHERE user_id = ?";
+//        String sql = "SELECT e.* " +
+//                "FROM events e " +
+//                "INNER JOIN friendship f ON e.user_id = f.friend_id " +
+//                "WHERE f.user_id = ? " +
+//                "UNION " +
+//                "SELECT e.* " +
+//                "FROM events e " +
+//                "WHERE e.user_id = ? " +
+//                "ORDER BY timestamp ASC; ";
         getUserById(userId);
         return jdbcTemplate.query(sql, new EventRowMapper(), userId, userId);
     }

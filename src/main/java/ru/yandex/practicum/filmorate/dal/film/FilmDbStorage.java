@@ -271,12 +271,12 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
 
         params.add("%" + query + "%");
         if (searchByTitle && searchByDirector) {
-            conditions = "WHERE LOWER(f.name) LIKE ? OR LOWER(d.name) LIKE ?\n";
+            conditions = "WHERE LOWER(f.name) LIKE ? OR LOWER(d.name) LIKE ? ";
             params.add("%" + query + "%");
         } else if (searchByTitle) {
-            conditions = "WHERE LOWER(f.name) LIKE ?\n";
+            conditions = "WHERE LOWER(f.name) LIKE ? ";
         } else if (searchByDirector) {
-            conditions = "WHERE LOWER(d.name) LIKE ?\n";
+            conditions = "WHERE LOWER(d.name) LIKE ? ";
         } else {
             throw new ValidationException("Параметр \"by\" некорректен");
         }
