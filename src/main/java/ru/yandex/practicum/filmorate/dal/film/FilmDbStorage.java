@@ -94,6 +94,7 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
 
     @Override
     public Film update(Film film) {
+        getFilmById(film.getId());
         jdbc.update("delete from FILM_GENRE where FILM_ID = ?", film.getId());
         jdbc.update("delete from FILM_DIRECTORS where FILM_ID = ?", film.getId());
         update(
@@ -263,12 +264,12 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
 
         params.add("%" + query + "%");
         if (searchByTitle && searchByDirector) {
-            conditions = "WHERE f.name LIKE ? OR d.name LIKE ?\n";
+            conditions = "WHERE f.name LIKE ? OR d.name LIKE ? ";
             params.add("%" + query + "%");
         } else if (searchByTitle) {
-            conditions = "WHERE f.name LIKE ?\n";
+            conditions = "WHERE f.name LIKE ? ";
         } else if (searchByDirector) {
-            conditions = "WHERE d.name LIKE ?\n";
+            conditions = "WHERE d.name LIKE ? ";
         } else {
             throw new ValidationException("Параметр \"by\" некорректен");
         }
@@ -355,16 +356,7 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
 
     private void addEvent(Integer userId, String operation, Integer entityId) {
         String sql = "INSERT INTO events (timestamp, user_id, event_type, operation, entity_id) VALUES (?, ?, ?, ?, ?)";
-
         long timestamp = Instant.now().toEpochMilli();
-
-        Event event = Event.builder()
-                .timestamp(timestamp)
-                .userId(userId)
-                .eventType("LIKE")
-                .operation(operation)
-                .entityId(entityId)
-                .build();
 
         jdbc.update(sql, timestamp, userId, "LIKE", operation, entityId);
     }
