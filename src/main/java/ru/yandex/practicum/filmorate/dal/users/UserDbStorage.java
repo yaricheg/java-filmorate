@@ -129,7 +129,7 @@ public class UserDbStorage implements UserStorage {
 //                "WHERE e.user_id = ? " +
 //                "ORDER BY timestamp ASC; ";
         getUserById(userId);
-        return jdbcTemplate.query(sql, new EventRowMapper(), userId, userId);
+        return jdbcTemplate.query(sql, new EventRowMapper(), userId);//, userId
     }
 
     @Override
