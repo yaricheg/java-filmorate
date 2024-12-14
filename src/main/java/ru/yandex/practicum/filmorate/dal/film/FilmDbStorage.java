@@ -270,7 +270,7 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
 
         params.add("%" + query + "%");
         if (searchByTitle && searchByDirector) {
-            conditions = "WHERE LOWER(f.name) LIKE ? OR d.name LIKE ?\n";
+            conditions = "WHERE LOWER(f.name) LIKE ? OR LOWER(d.name) LIKE ?\n";
             params.add("%" + query + "%");
         } else if (searchByTitle) {
             conditions = "WHERE LOWER(f.name) LIKE ?\n";
@@ -296,9 +296,9 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
                 """
                 + conditions +
                 """
-                        GROUP BY f.id, m.name
-                        ORDER BY likes_count DESC;
-                        """;
+                GROUP BY f.id, m.name
+                ORDER BY likes_count DESC;
+                """;
         Collection<Film> films = findMany(findByQuery, params.toArray());
         return films;
     }
