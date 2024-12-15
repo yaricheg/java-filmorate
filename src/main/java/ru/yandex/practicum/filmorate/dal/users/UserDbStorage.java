@@ -23,10 +23,10 @@ import java.util.*;
 @Component("UserDbStorage")
 public class UserDbStorage implements UserStorage {
 
-
     private final JdbcTemplate jdbcTemplate;
 
     private static final String ALL_USERS = "SELECT * FROM users";
+
     @Override
     public User create(User user) {
         final String createUserSql = "INSERT INTO users (name, login, birthday, email) VALUES (?, ?, ?, ?)";
@@ -175,7 +175,7 @@ public class UserDbStorage implements UserStorage {
                 "    WHERE user_id = ? " +
                 ")";
 
-        return jdbcTemplate.query(sql, new FilmRowMapper(),userId, userId, userId, userId, userId);
+        return jdbcTemplate.query(sql, new FilmRowMapper(), userId, userId, userId, userId, userId);
     }
 
     @Override
