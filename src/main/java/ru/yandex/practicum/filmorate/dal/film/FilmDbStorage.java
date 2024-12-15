@@ -59,7 +59,7 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
             "WHERE fd.director_id = ?) " +
             "ORDER BY RELEASE_DATE";
 
-    private static final String GET_DIRECTOR_ID_SORT_LIKE = "SELECT f.*, m.id AS mpa_id, m.name AS mpa_name " +
+   /* private static final String GET_DIRECTOR_ID_SORT_LIKE = "SELECT f.*, m.id AS mpa_id, m.name AS mpa_name " +
             "FROM films f LEFT JOIN mpa m ON f.mpa_id = m.id " +
             "WHERE f.id IN (SELECT film_id " +
             "FROM likes " +
@@ -67,7 +67,17 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
             "ORDER BY COUNT(user_id) DESC) " +
             "AND f.id IN (SELECT fd.film_id " +
             "FROM FILM_DIRECTORS fd " +
-            "WHERE fd.director_id = ?)";
+            "WHERE fd.director_id = ?)";*/
+
+    private static final String GET_DIRECTOR_ID_SORT_LIKE = "SELECT f.*, m.id AS mpa_id, m.name AS mpa_name, COUNT(l.user_id) AS likes_count " +
+            "FROM films f " +
+            "LEFT JOIN film_genre fg ON f.id = fg.film_id " +
+            "LEFT JOIN likes l ON f.id = l.film_id " +
+            "LEFT JOIN film_directors fd ON  f.id = fd.film_id " +
+            "JOIN mpa m ON m.id = f.mpa_id " +
+            "WHERE fd.director_id = ? " +
+            "GROUP BY f.id,  f.mpa_id,  mpa_name " +
+            "ORDER BY likes_count DESC, f.id ";
 
 
     public FilmDbStorage(JdbcTemplate jdbc,
@@ -297,9 +307,9 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
                 """
                 + conditions +
                 """
-                GROUP BY f.id, m.name
-                ORDER BY likes_count DESC;
-                """;
+                        GROUP BY f.id, m.name
+                        ORDER BY likes_count DESC;
+                        """;
         Collection<Film> films = findMany(findByQuery, params.toArray());
         return films;
     }
