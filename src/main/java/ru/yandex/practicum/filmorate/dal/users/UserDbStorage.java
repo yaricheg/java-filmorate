@@ -4,32 +4,33 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.dal.film.FilmDbStorage;
+import ru.yandex.practicum.filmorate.dal.film.FilmStorage;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mappers.FilmRowMapper;
 import ru.yandex.practicum.filmorate.exception.UserNotFound;
 import ru.yandex.practicum.filmorate.mappers.EventRowMapper;
+import ru.yandex.practicum.filmorate.mappers.GenreRowMapper;
 import ru.yandex.practicum.filmorate.mappers.UserRowMapper;
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Event;
-import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.*;
 
 import java.sql.PreparedStatement;
 import java.time.Instant;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @Slf4j
 @RequiredArgsConstructor
 @Component("UserDbStorage")
 public class UserDbStorage implements UserStorage {
 
-    private static final String ALL_USERS = "SELECT * FROM users";
+
     private final JdbcTemplate jdbcTemplate;
 
+    private static final String ALL_USERS = "SELECT * FROM users";
     @Override
     public User create(User user) {
         final String createUserSql = "INSERT INTO users (name, login, birthday, email) VALUES (?, ?, ?, ?)";
@@ -123,7 +124,7 @@ public class UserDbStorage implements UserStorage {
     }
 
     @Override
-    public Collection commonFriends(Integer userId, Integer otherId) {
+    public Collection<User> commonFriends(Integer userId, Integer otherId) {
         final String sql = "SELECT * FROM users WHERE id IN " +
                 "(SELECT friend_id " +
                 "FROM users AS u " +
@@ -177,7 +178,30 @@ public class UserDbStorage implements UserStorage {
                 "    FROM likes " +
                 "    WHERE user_id = ? " +
                 ")";
-        return jdbcTemplate.query(sql, new FilmRowMapper(), userId, userId, userId, userId, userId);
+
+        return jdbcTemplate.query(sql, new FilmRowMapper(),userId, userId, userId, userId, userId);
+    }
+
+    @Override
+    public Map<Integer, List<Genre>> getAllFilmGenres(Collection<Film> films) {
+        final String getAllQuery = "SELECT fg.film_id, g.id AS genre_id, g.name AS name FROM film_genre fg " +
+                "LEFT JOIN genres g ON fg.genre_id = g.id WHERE fg.film_id IN (%s)";
+
+        Map<Integer, List<Genre>> filmGenreMap = new HashMap<>();
+        Collection<String> ids = films.stream()
+                .map(film -> String.valueOf(film.getId()))
+                .toList();
+
+        jdbcTemplate.query(String.format(getAllQuery, String.join(",", ids)), rs -> {
+            Genre genre = new Genre(rs.getInt("genre_id"),
+                    rs.getString("name"));
+
+            Integer filmId = rs.getInt("film_id");
+
+            filmGenreMap.putIfAbsent(filmId, new ArrayList<>());
+            filmGenreMap.get(filmId).add(genre);
+        });
+        return filmGenreMap;
     }
 
     private void addEvent(Integer userId, String operation, Integer entityId) {
@@ -195,5 +219,6 @@ public class UserDbStorage implements UserStorage {
 
         jdbcTemplate.update(sql, timestamp, userId, "FRIEND", operation, entityId);
     }
+
 
 }
