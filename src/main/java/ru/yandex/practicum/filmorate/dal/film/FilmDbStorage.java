@@ -59,15 +59,6 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
             "WHERE fd.director_id = ?) " +
             "ORDER BY RELEASE_DATE";
 
-   /* private static final String GET_DIRECTOR_ID_SORT_LIKE = "SELECT f.*, m.id AS mpa_id, m.name AS mpa_name " +
-            "FROM films f LEFT JOIN mpa m ON f.mpa_id = m.id " +
-            "WHERE f.id IN (SELECT film_id " +
-            "FROM likes " +
-            "GROUP BY film_id " +
-            "ORDER BY COUNT(user_id) DESC) " +
-            "AND f.id IN (SELECT fd.film_id " +
-            "FROM FILM_DIRECTORS fd " +
-            "WHERE fd.director_id = ?)";*/
 
     private static final String GET_DIRECTOR_ID_SORT_LIKE = "SELECT f.*, m.id AS mpa_id, m.name AS mpa_name, COUNT(l.user_id) AS likes_count " +
             "FROM films f " +
@@ -149,17 +140,20 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
 
     @Override
     public Collection<Film> getFilmsByIdDirectorSortYear(int id) {
-        return findMany(
-                GET_DIRECTOR_ID_SORT_YEAR,
-                id);
+        Collection<Film> film = findMany(GET_DIRECTOR_ID_SORT_YEAR, id);
+        if(film.isEmpty()){
+            throw new NotFoundException("Режиссер не найден");
+        }
+        return film;
     }
 
     @Override
     public Collection<Film> getFilmsByIdDirectorsSortLike(int id) {
-        return findMany(
-                GET_DIRECTOR_ID_SORT_LIKE,
-                id
-        );
+        Collection<Film> film  = findMany(GET_DIRECTOR_ID_SORT_LIKE, id);
+        if(film.isEmpty()){
+            throw new NotFoundException("Режиссер не найден");
+        }
+        return film;
     }
 
     @Override

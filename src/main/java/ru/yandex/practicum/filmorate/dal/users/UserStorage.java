@@ -2,10 +2,12 @@ package ru.yandex.practicum.filmorate.dal.users;
 
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Event;
+import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 public interface UserStorage {
     Collection<Event> getEvents(Integer userId);
@@ -29,4 +31,6 @@ public interface UserStorage {
     User getUserById(Integer id);
 
     List<Film> getFilmRecommendationsForUser(int userId);
+
+    Map<Integer, List<Genre>> getAllFilmGenres(Collection<Film> films);
 }
