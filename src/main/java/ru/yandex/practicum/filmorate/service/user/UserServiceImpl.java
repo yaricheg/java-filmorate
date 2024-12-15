@@ -2,19 +2,14 @@ package ru.yandex.practicum.filmorate.service.user;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.dal.film.FilmDbStorage;
-import ru.yandex.practicum.filmorate.dal.film.FilmStorage;
 import ru.yandex.practicum.filmorate.dal.users.UserStorage;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.*;
-import ru.yandex.practicum.filmorate.service.film.FilmService;
-
 
 import java.util.*;
 
 @Service
 public class UserServiceImpl implements UserService {
-
 
     private final UserStorage userStorage;
 
@@ -100,13 +95,11 @@ public class UserServiceImpl implements UserService {
     public List<Film> getFilmRecommendationsForUser(Integer userId) {
         List<Film> films = userStorage.getFilmRecommendationsForUser(userId);
         Map<Integer, List<Genre>> filmGenresMap = userStorage.getAllFilmGenres(films);
-       // Map<Integer, List<Director>> filmDirectorsMap = userStorage.getAllFilmDirectors(films);
         films.forEach(film -> {
             Integer filmId = film.getId();
             film.setGenres(filmGenresMap.getOrDefault(filmId, new ArrayList<>()));
             ;
         });
-        //film.setDirectors(filmDirectorsMap.getOrDefault(filmId, new ArrayList<>()))
         return films;
     }
 
