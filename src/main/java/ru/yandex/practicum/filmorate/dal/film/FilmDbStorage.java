@@ -141,7 +141,7 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
     @Override
     public Collection<Film> getFilmsByIdDirectorSortYear(int id) {
         Collection<Film> film = findMany(GET_DIRECTOR_ID_SORT_YEAR, id);
-        if(film.isEmpty()){
+        if (film.isEmpty()) {
             throw new NotFoundException("Режиссер не найден");
         }
         return film;
@@ -149,8 +149,8 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
 
     @Override
     public Collection<Film> getFilmsByIdDirectorsSortLike(int id) {
-        Collection<Film> film  = findMany(GET_DIRECTOR_ID_SORT_LIKE, id);
-        if(film.isEmpty()){
+        Collection<Film> film = findMany(GET_DIRECTOR_ID_SORT_LIKE, id);
+        if (film.isEmpty()) {
             throw new NotFoundException("Режиссер не найден");
         }
         return film;
@@ -193,7 +193,6 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
                 "fd.director_id = d.id WHERE film_id = ?";
         return jdbc.query(getAllByIdQuery, new DirectorRowMapper(), filmId);
     }
-
 
     @Override
     public Map<Integer, List<Genre>> getAllFilmGenres(Collection<Film> films) {
