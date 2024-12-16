@@ -7,15 +7,18 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.dal.feed.FeedStorage;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.mappers.FilmRowMapper;
 import ru.yandex.practicum.filmorate.exception.UserNotFound;
 import ru.yandex.practicum.filmorate.mappers.EventRowMapper;
+import ru.yandex.practicum.filmorate.mappers.FilmRowMapper;
 import ru.yandex.practicum.filmorate.mappers.UserRowMapper;
-import ru.yandex.practicum.filmorate.model.*;
+import ru.yandex.practicum.filmorate.model.Event;
+import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.User;
 
 import java.sql.PreparedStatement;
-import java.time.Instant;
 import java.util.*;
 
 @Slf4j
@@ -24,6 +27,7 @@ import java.util.*;
 public class UserDbStorage implements UserStorage {
 
     private final JdbcTemplate jdbcTemplate;
+    private final FeedStorage feed;
 
     private static final String ALL_USERS = "SELECT * FROM users";
 
@@ -90,16 +94,12 @@ public class UserDbStorage implements UserStorage {
     public void addFriend(Integer userId, Integer friendId) {
         final String addFriendSql = "INSERT INTO friendship (user_id, friend_id) VALUES (?, ?)";
         jdbcTemplate.update(addFriendSql, userId, friendId);
-
-        addEvent(userId, "ADD", friendId);
     }
 
     @Override
     public void deleteFriend(Integer userId, Integer friendId) {
         final String deleteFriendSql = "DELETE FROM friendship WHERE user_id = ? AND friend_id = ?";
         jdbcTemplate.update(deleteFriendSql, userId, friendId);
-
-        addEvent(userId, "REMOVE", friendId);
     }
 
     @Override
@@ -199,22 +199,4 @@ public class UserDbStorage implements UserStorage {
         });
         return filmGenreMap;
     }
-
-    private void addEvent(Integer userId, String operation, Integer entityId) {
-        String sql = "INSERT INTO events (timestamp, user_id, event_type, operation, entity_id) VALUES (?, ?, ?, ?, ?)";
-
-        long timestamp = Instant.now().toEpochMilli();
-
-        Event event = Event.builder()
-                .timestamp(timestamp)
-                .userId(userId)
-                .eventType("FRIEND")
-                .operation(operation)
-                .entityId(entityId)
-                .build();
-
-        jdbcTemplate.update(sql, timestamp, userId, "FRIEND", operation, entityId);
-    }
-
-
 }

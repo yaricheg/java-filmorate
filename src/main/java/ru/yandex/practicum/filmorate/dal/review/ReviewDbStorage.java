@@ -7,10 +7,8 @@ import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.dal.BaseRepository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mappers.ReviewRowMapper;
-import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.Review;
 
-import java.time.Instant;
 import java.util.Collection;
 
 @Repository("reviewDbStorage")
@@ -40,7 +38,6 @@ public class ReviewDbStorage extends BaseRepository<Review> implements ReviewSto
                 review.getFilmId()
         ));
         review.setReviewId(id);
-        addEvent(getReviewById(review.getReviewId()).getUserId(), "ADD", review.getReviewId());
         return getReviewById(review.getReviewId());
     }
 
@@ -52,7 +49,6 @@ public class ReviewDbStorage extends BaseRepository<Review> implements ReviewSto
                 review.getIsPositive(),
                 review.getReviewId()
         );
-        addEvent(getReviewById(review.getReviewId()).getUserId(), "UPDATE", review.getReviewId());
         return getReviewById(review.getReviewId());
     }
 
@@ -61,7 +57,6 @@ public class ReviewDbStorage extends BaseRepository<Review> implements ReviewSto
         String deleteFilmSql = "DELETE FROM reviews WHERE reviews_id = ?";
         int userId = getReviewById(id).getUserId();
         jdbc.update(deleteFilmSql, id);
-        addEvent(userId, "REMOVE", id);
     }
 
     @Override
@@ -154,22 +149,6 @@ public class ReviewDbStorage extends BaseRepository<Review> implements ReviewSto
         if (userCount == 0) {
             throw new NotFoundException("Пользователь с id " + userId + " не найден");
         }
-    }
-
-    private void addEvent(Integer userId, String operation, Integer entityId) {
-        String sql = "INSERT INTO events (timestamp, user_id, event_type, operation, entity_id) VALUES (?, ?, ?, ?, ?)";
-
-        long timestamp = Instant.now().toEpochMilli();
-
-        Event event = Event.builder()
-                .timestamp(timestamp)
-                .userId(userId)
-                .eventType("REVIEW")
-                .operation(operation)
-                .entityId(entityId)
-                .build();
-
-        jdbc.update(sql, timestamp, userId, "REVIEW", operation, entityId);
     }
 }
 
