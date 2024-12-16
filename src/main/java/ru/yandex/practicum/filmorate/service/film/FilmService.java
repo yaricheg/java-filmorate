@@ -32,9 +32,7 @@ public interface FilmService {
 
     Collection<Film> getPopularFilmsSortedByYear(Integer count, Integer year);
 
-    Collection<Film> getFilmsByIdDirectorSortYear(int id);
-
-    Collection<Film> getFilmsByIdDirectorsSortLike(int id);
+    Collection<Film> getFilmsByIdDirectorSort(int id, String sortBy);
 
     Collection<Film> getCommonFilms(Integer userId, Integer friendId);
 

@@ -51,16 +51,14 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
             "HAVING COUNT(DISTINCT l.user_id) = 2 " +
             "ORDER BY COUNT(l.user_id) DESC";
 
-    private static final String GET_DIRECTOR_ID_SORT_YEAR = "SELECT f.*, m.id AS mpa_id, m.name AS mpa_name " +
-            "FROM films f LEFT JOIN mpa m ON f.mpa_id = m.id " +
-            "WHERE f.ID IN " +
-            "(SELECT fd.film_id " +
-            "FROM FILM_DIRECTORS fd " +
-            "WHERE fd.director_id = ?) " +
+    private static final String GET_FILM_ID_DIRECTOR_SORT_YEAR = "SELECT f.*, m.id AS mpa_id, m.name AS mpa_name " +
+            "FROM films f " +
+            "LEFT JOIN film_directors fd ON  f.id = fd.film_id " +
+            "JOIN mpa m ON m.id = f.mpa_id " +
+            "WHERE fd.director_id = ? " +
             "ORDER BY RELEASE_DATE";
 
-
-    private static final String GET_DIRECTOR_ID_SORT_LIKE = "SELECT f.*, m.id AS mpa_id, m.name AS mpa_name, COUNT(l.user_id) AS likes_count " +
+    private static final String GET_FILM_ID_DIRECTOR_SORT_LIKE = "SELECT f.*, m.id AS mpa_id, m.name AS mpa_name, COUNT(l.user_id) AS likes_count " +
             "FROM films f " +
             "LEFT JOIN film_genre fg ON f.id = fg.film_id " +
             "LEFT JOIN likes l ON f.id = l.film_id " +
@@ -140,7 +138,7 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
 
     @Override
     public Collection<Film> getFilmsByIdDirectorSortYear(int id) {
-        Collection<Film> film = findMany(GET_DIRECTOR_ID_SORT_YEAR, id);
+        Collection<Film> film = findMany(GET_FILM_ID_DIRECTOR_SORT_YEAR, id);
         if (film.isEmpty()) {
             throw new NotFoundException("Режиссер не найден");
         }
@@ -149,7 +147,7 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
 
     @Override
     public Collection<Film> getFilmsByIdDirectorsSortLike(int id) {
-        Collection<Film> film = findMany(GET_DIRECTOR_ID_SORT_LIKE, id);
+        Collection<Film> film = findMany(GET_FILM_ID_DIRECTOR_SORT_LIKE, id);
         if (film.isEmpty()) {
             throw new NotFoundException("Режиссер не найден");
         }
@@ -161,12 +159,10 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
         final String existsQuery = "SELECT COUNT(*) FROM likes WHERE film_id = ? AND user_id = ?";
         final String insertQuery = "INSERT INTO likes (film_id, user_id) values (?, ?)";
         final String increaseRateQuery = "UPDATE films SET rate = rate + 1 WHERE id = ?";
-
         Integer exists = jdbc.queryForObject(existsQuery, Integer.class, filmId, userId);
         if (exists == 0) {
             jdbc.update(insertQuery, filmId, userId);
         }
-
         jdbc.update(increaseRateQuery, filmId);
         addEvent(userId, "ADD", filmId);
     }

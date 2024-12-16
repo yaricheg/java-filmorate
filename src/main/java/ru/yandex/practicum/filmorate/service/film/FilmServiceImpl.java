@@ -69,14 +69,11 @@ public class FilmServiceImpl implements FilmService {
         return toFilmsDto(filmStorage.getMostPopular(count));
     }
 
-
     @Override
-    public Collection<Film> getFilmsByIdDirectorSortYear(int id) {
-        return toFilmsDto(filmStorage.getFilmsByIdDirectorSortYear(id));
-    }
-
-    @Override
-    public Collection<Film> getFilmsByIdDirectorsSortLike(int id) {
+    public Collection<Film> getFilmsByIdDirectorSort(int id, String sortBy) {
+        if (sortBy.equals("year")) {
+            return toFilmsDto(filmStorage.getFilmsByIdDirectorSortYear(id));
+        }
         return toFilmsDto(filmStorage.getFilmsByIdDirectorsSortLike(id));
     }
 
