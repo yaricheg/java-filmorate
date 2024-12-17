@@ -3,11 +3,11 @@ package ru.yandex.practicum.filmorate.controller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exception.DirectorChecker;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.service.director.DirectorService;
 
 import java.util.Collection;
-
 
 @RequiredArgsConstructor
 @RestController
@@ -31,12 +31,14 @@ public class DirectorController {
 
     @PostMapping
     public Director create(@RequestBody Director director) {
-        log.info("Добавляем нового режиссер {}.", director);
+        DirectorChecker.checkDirector(director);
+        log.info("Добавляем нового режиссера {}.", director);
         return directorService.save(director);
     }
 
     @PutMapping
     public Director update(@RequestBody Director updateDirector) {
+        DirectorChecker.checkDirector(updateDirector);
         log.info("Обновляем режиссера {}.", updateDirector);
         return directorService.update(updateDirector);
     }
