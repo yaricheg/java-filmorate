@@ -45,33 +45,40 @@ public class ReviewController {
 
     @GetMapping
     public Collection<Review> getReviews(
-            @RequestParam(value = "filmId", defaultValue = "-1") Integer filmId,
+            @RequestParam(value = "filmId", required = false) Integer filmId,
             @RequestParam(value = "count", defaultValue = "10") Integer count) {
         return reviewService.getReviews(filmId, count);
     }
 
-    @PutMapping("/{id}/like/{userId}")
-    public void addLike(@PathVariable Integer id, @PathVariable Integer userId) {
-        log.info("Добавление лайка к отзыву c id {}, от пользователя с id {}.", id, userId);
-        reviewService.addLike(id, userId);
+
+    @PutMapping("/{id}/{type}/{userId}")
+    public void addLikeOrDislike(@PathVariable Integer id,
+                                 @PathVariable String type,
+                                 @PathVariable Integer userId) {
+        boolean isLike = parseType(type);
+        log.info("Добавление {} к отзыву с id {}, от пользователя с id {}.",
+                isLike ? "лайка" : "дизлайка", id, userId);
+        reviewService.addLikeOrDislike(id, userId, isLike);
     }
 
-    @DeleteMapping("/{id}/like/{userId}")
-    public void deleteLike(@PathVariable Integer id, @PathVariable Integer userId) {
-        log.info("Удаление лайка к отзыву c id {}, от пользователя с id {}.", id, userId);
-        reviewService.deleteLike(id, userId);
+
+    @DeleteMapping("/{id}/{type}/{userId}")
+    public void deleteLikeOrDislike(@PathVariable Integer id,
+                                    @PathVariable String type,
+                                    @PathVariable Integer userId) {
+        log.info("Удаление {} к отзыву с id {}, от пользователя с id {}.",
+                type.equalsIgnoreCase("like") ? "лайка" : "дизлайка", id, userId);
+        reviewService.deleteLikeOrDislike(id, userId);
     }
 
-    @PutMapping("/{id}/dislike/{userId}")
-    public void addDislike(@PathVariable Integer id, @PathVariable Integer userId) {
-        log.info("Добавление дизлайка к отзыву c id {}, от пользователя с id {}.", id, userId);
-        reviewService.addDislike(id, userId);
-    }
 
-    @DeleteMapping("/{id}/dislike/{userId}")
-    public void deleteDislike(@PathVariable Integer id, @PathVariable Integer userId) {
-        log.info("Удаление дизлайка к отзыву c id {}, от пользователя с id {}.", id, userId);
-        reviewService.deleteDislike(id, userId);
+    private boolean parseType(String type) {
+        if (type.equalsIgnoreCase("like")) {
+            return true;
+        } else if (type.equalsIgnoreCase("dislike")) {
+            return false;
+        } else {
+            throw new IllegalArgumentException("Invalid reaction type: " + type);
+        }
     }
-
 }

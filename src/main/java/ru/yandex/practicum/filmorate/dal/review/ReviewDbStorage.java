@@ -8,25 +8,31 @@ import ru.yandex.practicum.filmorate.dal.BaseRepository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.mappers.ReviewRowMapper;
 import ru.yandex.practicum.filmorate.model.Review;
-
 import java.util.Collection;
+
 
 @Repository("reviewDbStorage")
 public class ReviewDbStorage extends BaseRepository<Review> implements ReviewStorage {
 
+
     private static final String FIND_VOTE_QUERY = "SELECT is_positive FROM review_likes " +
             "WHERE review_id = ? AND user_id = ?";
 
+
     private static final String ALL_REVIEWS = "SELECT * FROM reviews";
+
 
     private static final String INSERT_QUERY = "INSERT INTO reviews (content, type, user_id, film_id) " +
             "VALUES (?, ?, ?, ?)";
 
+
     private static final String UPDATE_QUERY = "UPDATE reviews SET content = ?, type = ? WHERE reviews_id = ?";
+
 
     public ReviewDbStorage(JdbcTemplate jdbc, RowMapper<Review> mapper) {
         super(jdbc, mapper);
     }
+
 
     @Override
     public Review save(Review review) {
@@ -41,6 +47,7 @@ public class ReviewDbStorage extends BaseRepository<Review> implements ReviewSto
         return getReviewById(review.getReviewId());
     }
 
+
     @Override
     public Review update(Review review) {
         update(
@@ -52,12 +59,14 @@ public class ReviewDbStorage extends BaseRepository<Review> implements ReviewSto
         return getReviewById(review.getReviewId());
     }
 
+
     @Override
     public void delete(Integer id) {
         String deleteFilmSql = "DELETE FROM reviews WHERE reviews_id = ?";
         int userId = getReviewById(id).getUserId();
         jdbc.update(deleteFilmSql, id);
     }
+
 
     @Override
     public Review getReviewById(Integer reviewId) {
@@ -70,10 +79,11 @@ public class ReviewDbStorage extends BaseRepository<Review> implements ReviewSto
         }
     }
 
+
     @Override
     public Collection<Review> getReviews(Integer filmId, Integer count) {
         String query;
-        if (filmId == -1) {
+        if (filmId == null) {
             query = ALL_REVIEWS + " ORDER BY useful DESC LIMIT " + count;
         } else {
             query = "SELECT * FROM reviews WHERE film_id = " + filmId + " ORDER BY useful DESC LIMIT " + count;
@@ -81,75 +91,34 @@ public class ReviewDbStorage extends BaseRepository<Review> implements ReviewSto
         return findMany(query);
     }
 
+
     @Override
-    public void addLike(Integer reviewId, Integer userId) {
-        checkUserById(userId);
-        Boolean currentLike = jdbc.query(FIND_VOTE_QUERY,
+    public void addLikeOrDislike(Integer reviewId, Integer userId, Boolean isLike) {
+        Boolean currentType = jdbc.query(FIND_VOTE_QUERY,
                 rs -> rs.next() ? rs.getBoolean("is_positive") : null, reviewId, userId);
-        if (currentLike == null) {
-            jdbc.update("INSERT INTO review_likes (review_id, user_id, is_positive) VALUES (?, ?, TRUE)",
-                    reviewId, userId);
-            jdbc.update("UPDATE reviews SET useful = useful + 1 WHERE reviews_id = ?", reviewId);
-        } else if (!currentLike) {
-            jdbc.update("UPDATE review_likes SET is_positive = TRUE WHERE review_id = ? AND user_id = ?",
-                    reviewId, userId);
-            jdbc.update("UPDATE reviews SET useful = useful + 2 WHERE reviews_id = ?", reviewId);
+        if (currentType == null) {
+            jdbc.update("INSERT INTO review_likes (review_id, user_id, is_positive) VALUES (?, ?, ?)",
+                    reviewId, userId, isLike);
+            jdbc.update("UPDATE reviews SET useful = useful + ? WHERE reviews_id = ?",
+                    isLike ? 1 : -1, reviewId);
+        } else if (!currentType.equals(isLike)) {
+            jdbc.update("UPDATE review_likes SET is_positive = ? WHERE review_id = ? AND user_id = ?",
+                    isLike, reviewId, userId);
+            jdbc.update("UPDATE reviews SET useful = useful + ? WHERE reviews_id = ?",
+                    isLike ? 2 : -2, reviewId);
         }
     }
 
-    @Override
-    public void addDislike(Integer reviewId, Integer userId) {
-        checkUserById(userId);
-        Boolean currentLike = jdbc.query(FIND_VOTE_QUERY,
-                rs -> rs.next() ? rs.getBoolean("is_positive") : null, reviewId, userId);
-        if (currentLike == null) {
-            jdbc.update("INSERT INTO review_likes (review_id, user_id, is_positive) VALUES (?, ?, FALSE)",
-                    reviewId, userId);
-            jdbc.update("UPDATE reviews SET useful = useful - 1 WHERE reviews_id = ?", reviewId);
-        } else if (currentLike) {
-            jdbc.update("UPDATE review_likes SET is_positive = FALSE WHERE review_id = ? AND user_id = ?",
-                    reviewId, userId);
-            jdbc.update("UPDATE reviews SET useful = useful - 2 WHERE reviews_id = ?", reviewId);
-        }
-    }
 
     @Override
-    public void deleteLike(Integer reviewId, Integer userId) {
-        checkUserById(userId);
-        String deleteQuery = "DELETE FROM review_likes WHERE review_id = ? AND user_id = ? AND is_positive = TRUE";
+    public void deleteLikeOrDislike(Integer reviewId, Integer userId) {
+        String deleteQuery = "DELETE FROM review_likes WHERE review_id = ? AND user_id = ?";
         int rowsAffected = jdbc.update(deleteQuery, reviewId, userId);
         if (rowsAffected > 0) {
             jdbc.update("UPDATE reviews SET useful = useful - 1 WHERE reviews_id = ?", reviewId);
-        }
-    }
-
-    @Override
-    public void deleteDislike(Integer reviewId, Integer userId) {
-        checkUserById(userId);
-        String deleteQuery = "DELETE FROM review_likes WHERE review_id = ? AND user_id = ? AND is_positive = FALSE";
-        int rowsAffected = jdbc.update(deleteQuery, reviewId, userId);
-        if (rowsAffected > 0) {
-            jdbc.update("UPDATE reviews SET useful = useful + 1 WHERE reviews_id = ?", reviewId);
-        }
-    }
-
-    @Override
-    public void checkFilmById(Integer filmId) {
-        String checkUserSql = "SELECT COUNT(*) FROM films WHERE id = ?";
-        int userCount = jdbc.queryForObject(checkUserSql, Integer.class, filmId);
-        if (userCount == 0) {
-            throw new NotFoundException("Фильм с id " + filmId + " не найден");
-        }
-    }
-
-    @Override
-    public void checkUserById(Integer userId) {
-        String checkUserSql = "SELECT COUNT(*) FROM users WHERE id = ?";
-        int userCount = jdbc.queryForObject(checkUserSql, Integer.class, userId);
-        if (userCount == 0) {
-            throw new NotFoundException("Пользователь с id " + userId + " не найден");
         }
     }
 }
+
 
 
