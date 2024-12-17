@@ -5,6 +5,9 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dal.film.FilmStorage;
 import ru.yandex.practicum.filmorate.dal.review.ReviewStorage;
 import ru.yandex.practicum.filmorate.dal.users.UserStorage;
+import ru.yandex.practicum.filmorate.dal.feed.FeedStorage;
+import ru.yandex.practicum.filmorate.enums.DbOperation;
+import ru.yandex.practicum.filmorate.enums.EventType;
 import ru.yandex.practicum.filmorate.model.Review;
 
 import java.util.Collection;
@@ -13,7 +16,7 @@ import java.util.Collection;
 @RequiredArgsConstructor
 public class ReviewServiceImpl implements ReviewService {
 
-
+    private final FeedStorage feed;
     private final ReviewStorage reviewStorage;
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
@@ -23,7 +26,11 @@ public class ReviewServiceImpl implements ReviewService {
     public Review saveReview(Review review) {
         userStorage.getUserById(review.getUserId());
         filmStorage.getFilmById(review.getFilmId());
-        return reviewStorage.save(review);
+        Review review1 = reviewStorage.save(review);
+        feed.addEvent(getReviewById(review.getReviewId()).getUserId(),
+                EventType.REVIEW, DbOperation.ADD,
+                review.getReviewId());
+        return review1;
     }
 
 
@@ -31,12 +38,17 @@ public class ReviewServiceImpl implements ReviewService {
     public Review updateReview(Review review) {
         userStorage.getUserById(review.getUserId());
         filmStorage.getFilmById(review.getFilmId());
+        feed.addEvent(getReviewById(review.getReviewId()).getUserId(),
+                EventType.REVIEW, DbOperation.UPDATE,
+                review.getReviewId());
         return reviewStorage.update(review);
     }
 
 
     @Override
     public void deleteReview(Integer id) {
+        int userId = getReviewById(id).getUserId();
+        feed.addEvent(userId, EventType.REVIEW, DbOperation.REMOVE, id);
         reviewStorage.delete(id);
     }
 

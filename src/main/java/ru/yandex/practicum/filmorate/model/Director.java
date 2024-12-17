@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ru.yandex.practicum.filmorate.validator.containSpaces.ContainSpaces;
 
 @Data
 @Builder
@@ -12,6 +11,5 @@ import ru.yandex.practicum.filmorate.validator.containSpaces.ContainSpaces;
 @AllArgsConstructor
 public class Director {
     private Integer id;
-    @ContainSpaces
     private String name;
 }

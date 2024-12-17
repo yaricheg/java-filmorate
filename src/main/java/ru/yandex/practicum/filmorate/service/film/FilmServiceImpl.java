@@ -2,7 +2,10 @@ package ru.yandex.practicum.filmorate.service.film;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dal.feed.FeedStorage;
 import ru.yandex.practicum.filmorate.dal.film.FilmStorage;
+import ru.yandex.practicum.filmorate.enums.DbOperation;
+import ru.yandex.practicum.filmorate.enums.EventType;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -17,9 +20,11 @@ import java.util.Map;
 @Service
 public class FilmServiceImpl implements FilmService {
     private final FilmStorage filmStorage;
+    private final FeedStorage feedStorage;
 
-    public FilmServiceImpl(@Qualifier("filmDbStorage") FilmStorage filmStorage) {
+    public FilmServiceImpl(@Qualifier("filmDbStorage") FilmStorage filmStorage, FeedStorage feedStorage) {
         this.filmStorage = filmStorage;
+        this.feedStorage = feedStorage;
     }
 
     @Override
@@ -55,6 +60,7 @@ public class FilmServiceImpl implements FilmService {
         Film film = filmStorage.getFilmById(idFilm);
         User user = filmStorage.getUserById(idUser);
         filmStorage.addLike(film.getId(), user.getId());
+        feedStorage.addEvent(idUser, EventType.LIKE, DbOperation.ADD, idFilm);
     }
 
     @Override
@@ -62,6 +68,7 @@ public class FilmServiceImpl implements FilmService {
         Film film = filmStorage.getFilmById(idFilm);
         User user = filmStorage.getUserById(idUser);
         filmStorage.deleteLike(film.getId(), user.getId());
+        feedStorage.addEvent(idUser, EventType.LIKE, DbOperation.REMOVE, idFilm);
     }
 
     @Override
@@ -69,14 +76,11 @@ public class FilmServiceImpl implements FilmService {
         return toFilmsDto(filmStorage.getMostPopular(count));
     }
 
-
     @Override
-    public Collection<Film> getFilmsByIdDirectorSortYear(int id) {
-        return toFilmsDto(filmStorage.getFilmsByIdDirectorSortYear(id));
-    }
-
-    @Override
-    public Collection<Film> getFilmsByIdDirectorsSortLike(int id) {
+    public Collection<Film> getFilmsByIdDirectorSort(int id, String sortBy) {
+        if (sortBy.equals("year")) {
+            return toFilmsDto(filmStorage.getFilmsByIdDirectorSortYear(id));
+        }
         return toFilmsDto(filmStorage.getFilmsByIdDirectorsSortLike(id));
     }
 

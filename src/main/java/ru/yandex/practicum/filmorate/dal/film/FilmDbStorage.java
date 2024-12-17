@@ -14,11 +14,13 @@ import ru.yandex.practicum.filmorate.mappers.DirectorRowMapper;
 import ru.yandex.practicum.filmorate.mappers.FilmRowMapper;
 import ru.yandex.practicum.filmorate.mappers.GenreRowMapper;
 import ru.yandex.practicum.filmorate.mappers.UserRowMapper;
-import ru.yandex.practicum.filmorate.model.*;
+import ru.yandex.practicum.filmorate.model.Director;
+import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.User;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.time.Instant;
 import java.util.*;
 
 
@@ -51,16 +53,14 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
             "HAVING COUNT(DISTINCT l.user_id) = 2 " +
             "ORDER BY COUNT(l.user_id) DESC";
 
-    private static final String GET_DIRECTOR_ID_SORT_YEAR = "SELECT f.*, m.id AS mpa_id, m.name AS mpa_name " +
-            "FROM films f LEFT JOIN mpa m ON f.mpa_id = m.id " +
-            "WHERE f.ID IN " +
-            "(SELECT fd.film_id " +
-            "FROM FILM_DIRECTORS fd " +
-            "WHERE fd.director_id = ?) " +
+    private static final String GET_FILM_ID_DIRECTOR_SORT_YEAR = "SELECT f.*, m.id AS mpa_id, m.name AS mpa_name " +
+            "FROM films f " +
+            "LEFT JOIN film_directors fd ON  f.id = fd.film_id " +
+            "JOIN mpa m ON m.id = f.mpa_id " +
+            "WHERE fd.director_id = ? " +
             "ORDER BY RELEASE_DATE";
 
-
-    private static final String GET_DIRECTOR_ID_SORT_LIKE = "SELECT f.*, m.id AS mpa_id, m.name AS mpa_name, COUNT(l.user_id) AS likes_count " +
+    private static final String GET_FILM_ID_DIRECTOR_SORT_LIKE = "SELECT f.*, m.id AS mpa_id, m.name AS mpa_name, COUNT(l.user_id) AS likes_count " +
             "FROM films f " +
             "LEFT JOIN film_genre fg ON f.id = fg.film_id " +
             "LEFT JOIN likes l ON f.id = l.film_id " +
@@ -70,6 +70,30 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
             "GROUP BY f.id,  f.mpa_id,  mpa_name " +
             "ORDER BY likes_count DESC, f.id ";
 
+    private enum SearchFilter {
+        TITLE("title"),
+        DIRECTOR("director"),
+        ALL("title,director");
+
+        private String value;
+
+        private SearchFilter(String value) {
+            this.value = value;
+        }
+
+        public static SearchFilter fromString(String value) {
+            if (!value.isBlank()) {
+                if (value.contains(SearchFilter.TITLE.value) && value.contains(SearchFilter.DIRECTOR.value)) {
+                    return SearchFilter.ALL;
+                } else if (value.contains(SearchFilter.TITLE.value)) {
+                    return SearchFilter.TITLE;
+                } else if (value.contains(SearchFilter.DIRECTOR.value)) {
+                    return SearchFilter.DIRECTOR;
+                }
+            }
+            throw new ValidationException("Параметр \"by\" некорректен");
+        }
+    }
 
     public FilmDbStorage(JdbcTemplate jdbc,
                          RowMapper<Film> mapper) {
@@ -140,7 +164,7 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
 
     @Override
     public Collection<Film> getFilmsByIdDirectorSortYear(int id) {
-        Collection<Film> film = findMany(GET_DIRECTOR_ID_SORT_YEAR, id);
+        Collection<Film> film = findMany(GET_FILM_ID_DIRECTOR_SORT_YEAR, id);
         if (film.isEmpty()) {
             throw new NotFoundException("Режиссер не найден");
         }
@@ -149,7 +173,7 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
 
     @Override
     public Collection<Film> getFilmsByIdDirectorsSortLike(int id) {
-        Collection<Film> film = findMany(GET_DIRECTOR_ID_SORT_LIKE, id);
+        Collection<Film> film = findMany(GET_FILM_ID_DIRECTOR_SORT_LIKE, id);
         if (film.isEmpty()) {
             throw new NotFoundException("Режиссер не найден");
         }
@@ -161,14 +185,11 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
         final String existsQuery = "SELECT COUNT(*) FROM likes WHERE film_id = ? AND user_id = ?";
         final String insertQuery = "INSERT INTO likes (film_id, user_id) values (?, ?)";
         final String increaseRateQuery = "UPDATE films SET rate = rate + 1 WHERE id = ?";
-
         Integer exists = jdbc.queryForObject(existsQuery, Integer.class, filmId, userId);
         if (exists == 0) {
             jdbc.update(insertQuery, filmId, userId);
         }
-
         jdbc.update(increaseRateQuery, filmId);
-        addEvent(userId, "ADD", filmId);
     }
 
     @Override
@@ -177,7 +198,6 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
         final String decreaseRateQuery = "UPDATE films SET rate = rate - 1 WHERE id = ?";
         jdbc.update(deleteQuery, filmId, userId);
         jdbc.update(decreaseRateQuery, filmId);
-        addEvent(userId, "REMOVE", filmId);
     }
 
 
@@ -266,22 +286,19 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
 
     @Override
     public Collection<Film> searchFilms(String query, String by) {
-        String conditions;
-        boolean searchByTitle = by.contains("title");
-        boolean searchByDirector = by.contains("director");
-        List<String> params = new ArrayList<>();
+        String conditions = "";
         query = query.toLowerCase();
-
+        List<String> params = new ArrayList<>();
         params.add("%" + query + "%");
-        if (searchByTitle && searchByDirector) {
+        SearchFilter searchBy = SearchFilter.fromString(by);
+
+        if (searchBy == SearchFilter.ALL) {
             conditions = "WHERE LOWER(f.name) LIKE ? OR LOWER(d.name) LIKE ?\n";
             params.add("%" + query + "%");
-        } else if (searchByTitle) {
+        } else if (searchBy == SearchFilter.TITLE) {
             conditions = "WHERE LOWER(f.name) LIKE ?\n";
-        } else if (searchByDirector) {
+        } else if (searchBy == SearchFilter.DIRECTOR) {
             conditions = "WHERE LOWER(d.name) LIKE ?\n";
-        } else {
-            throw new ValidationException("Параметр \"by\" некорректен");
         }
 
         String findByQuery = """
@@ -361,22 +378,6 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
         } catch (DataAccessException e) {
             throw new ValidationException("Введите правильный id режиссера");
         }
-    }
-
-    private void addEvent(Integer userId, String operation, Integer entityId) {
-        String sql = "INSERT INTO events (timestamp, user_id, event_type, operation, entity_id) VALUES (?, ?, ?, ?, ?)";
-
-        long timestamp = Instant.now().toEpochMilli();
-
-        Event event = Event.builder()
-                .timestamp(timestamp)
-                .userId(userId)
-                .eventType("LIKE")
-                .operation(operation)
-                .entityId(entityId)
-                .build();
-
-        jdbc.update(sql, timestamp, userId, "LIKE", operation, entityId);
     }
 
     @Override

@@ -2,19 +2,30 @@ package ru.yandex.practicum.filmorate.service.user;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dal.feed.FeedStorage;
 import ru.yandex.practicum.filmorate.dal.users.UserStorage;
+import ru.yandex.practicum.filmorate.enums.DbOperation;
+import ru.yandex.practicum.filmorate.enums.EventType;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.model.*;
+import ru.yandex.practicum.filmorate.model.Event;
+import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.User;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class UserServiceImpl implements UserService {
 
     private final UserStorage userStorage;
+    private final FeedStorage feedStorage;
 
-    public UserServiceImpl(@Qualifier("UserDbStorage") UserStorage userStorage) {
+    public UserServiceImpl(@Qualifier("UserDbStorage") UserStorage userStorage, FeedStorage feedStorage) {
         this.userStorage = userStorage;
+        this.feedStorage = feedStorage;
     }
 
     @Override
@@ -54,6 +65,7 @@ public class UserServiceImpl implements UserService {
         User user = userStorage.getUserById(userId);
         User friend = userStorage.getUserById(friendId);
         userStorage.addFriend(userId, friendId);
+        feedStorage.addEvent(userId, EventType.FRIEND, DbOperation.ADD, friendId);
         return user;
     }
 
@@ -66,6 +78,7 @@ public class UserServiceImpl implements UserService {
             throw new NotFoundException("Пользователь с id = " + userId + " не найден");
         }
         userStorage.deleteFriend(userId, friendId);
+        feedStorage.addEvent(userId, EventType.FRIEND, DbOperation.REMOVE, friendId);
         return userStorage.getUserById(userId);
     }
 
