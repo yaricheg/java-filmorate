@@ -14,11 +14,13 @@ import ru.yandex.practicum.filmorate.mappers.DirectorRowMapper;
 import ru.yandex.practicum.filmorate.mappers.FilmRowMapper;
 import ru.yandex.practicum.filmorate.mappers.GenreRowMapper;
 import ru.yandex.practicum.filmorate.mappers.UserRowMapper;
-import ru.yandex.practicum.filmorate.model.*;
+import ru.yandex.practicum.filmorate.model.Director;
+import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.User;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.time.Instant;
 import java.util.*;
 
 
@@ -69,7 +71,6 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
             "WHERE fd.director_id = ? " +
             "GROUP BY f.id,  f.mpa_id,  mpa_name " +
             "ORDER BY likes_count DESC, f.id ";
-
 
     public FilmDbStorage(JdbcTemplate jdbc,
                          RowMapper<Film> mapper) {
@@ -168,7 +169,6 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
         }
 
         jdbc.update(increaseRateQuery, filmId);
-        addEvent(userId, "ADD", filmId);
     }
 
     @Override
@@ -177,7 +177,6 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
         final String decreaseRateQuery = "UPDATE films SET rate = rate - 1 WHERE id = ?";
         jdbc.update(deleteQuery, filmId, userId);
         jdbc.update(decreaseRateQuery, filmId);
-        addEvent(userId, "REMOVE", filmId);
     }
 
 
@@ -361,22 +360,6 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
         } catch (DataAccessException e) {
             throw new ValidationException("Введите правильный id режиссера");
         }
-    }
-
-    private void addEvent(Integer userId, String operation, Integer entityId) {
-        String sql = "INSERT INTO events (timestamp, user_id, event_type, operation, entity_id) VALUES (?, ?, ?, ?, ?)";
-
-        long timestamp = Instant.now().toEpochMilli();
-
-        Event event = Event.builder()
-                .timestamp(timestamp)
-                .userId(userId)
-                .eventType("LIKE")
-                .operation(operation)
-                .entityId(entityId)
-                .build();
-
-        jdbc.update(sql, timestamp, userId, "LIKE", operation, entityId);
     }
 
     @Override
