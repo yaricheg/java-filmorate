@@ -15,7 +15,6 @@ import ru.yandex.practicum.filmorate.mappers.FilmRowMapper;
 import ru.yandex.practicum.filmorate.mappers.UserRowMapper;
 import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.sql.PreparedStatement;
@@ -178,25 +177,4 @@ public class UserDbStorage implements UserStorage {
         return jdbcTemplate.query(sql, new FilmRowMapper(), userId, userId, userId, userId, userId);
     }
 
-    /*@Override
-    public Map<Integer, List<Genre>> getAllFilmGenres(Collection<Film> films) {
-        final String getAllQuery = "SELECT fg.film_id, g.id AS genre_id, g.name AS name FROM film_genre fg " +
-                "LEFT JOIN genres g ON fg.genre_id = g.id WHERE fg.film_id IN (%s)";
-
-        Map<Integer, List<Genre>> filmGenreMap = new HashMap<>();
-        Collection<String> ids = films.stream()
-                .map(film -> String.valueOf(film.getId()))
-                .toList();
-
-        jdbcTemplate.query(String.format(getAllQuery, String.join(",", ids)), rs -> {
-            Genre genre = new Genre(rs.getInt("genre_id"),
-                    rs.getString("name"));
-
-            Integer filmId = rs.getInt("film_id");
-
-            filmGenreMap.putIfAbsent(filmId, new ArrayList<>());
-            filmGenreMap.get(filmId).add(genre);
-        });
-        return filmGenreMap;
-    }*/
 }
