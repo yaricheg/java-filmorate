@@ -178,7 +178,7 @@ public class UserDbStorage implements UserStorage {
         return jdbcTemplate.query(sql, new FilmRowMapper(), userId, userId, userId, userId, userId);
     }
 
-    @Override
+    /*@Override
     public Map<Integer, List<Genre>> getAllFilmGenres(Collection<Film> films) {
         final String getAllQuery = "SELECT fg.film_id, g.id AS genre_id, g.name AS name FROM film_genre fg " +
                 "LEFT JOIN genres g ON fg.genre_id = g.id WHERE fg.film_id IN (%s)";
@@ -198,5 +198,5 @@ public class UserDbStorage implements UserStorage {
             filmGenreMap.get(filmId).add(genre);
         });
         return filmGenreMap;
-    }
+    }*/
 }

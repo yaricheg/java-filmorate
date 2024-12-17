@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.service.user;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dal.feed.FeedStorage;
+import ru.yandex.practicum.filmorate.dal.film.FilmStorage;
 import ru.yandex.practicum.filmorate.dal.users.UserStorage;
 import ru.yandex.practicum.filmorate.enums.DbOperation;
 import ru.yandex.practicum.filmorate.enums.EventType;
@@ -23,9 +24,13 @@ public class UserServiceImpl implements UserService {
     private final UserStorage userStorage;
     private final FeedStorage feedStorage;
 
-    public UserServiceImpl(@Qualifier("UserDbStorage") UserStorage userStorage, FeedStorage feedStorage) {
+    private final FilmStorage filmStorage;
+
+    public UserServiceImpl(@Qualifier("UserDbStorage") UserStorage userStorage, FeedStorage feedStorage,
+                           FilmStorage filmStorage) {
         this.userStorage = userStorage;
         this.feedStorage = feedStorage;
+        this.filmStorage = filmStorage;
     }
 
     @Override
@@ -107,7 +112,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<Film> getFilmRecommendationsForUser(Integer userId) {
         List<Film> films = userStorage.getFilmRecommendationsForUser(userId);
-        Map<Integer, List<Genre>> filmGenresMap = userStorage.getAllFilmGenres(films);
+        Map<Integer, List<Genre>> filmGenresMap = filmStorage.getAllFilmGenres(films);
         films.forEach(film -> {
             Integer filmId = film.getId();
             film.setGenres(filmGenresMap.getOrDefault(filmId, new ArrayList<>()));
