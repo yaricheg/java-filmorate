@@ -72,6 +72,31 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
             "GROUP BY f.id,  f.mpa_id,  mpa_name " +
             "ORDER BY likes_count DESC, f.id ";
 
+    private enum SearchFilter {
+        TITLE("title"),
+        DIRECTOR("director"),
+        ALL("title,director");
+
+        private String value;
+
+        private SearchFilter(String value) {
+            this.value = value;
+        }
+
+        public static SearchFilter fromString(String value) {
+            if (!value.isBlank()) {
+                if (value.contains(SearchFilter.TITLE.value) && value.contains(SearchFilter.DIRECTOR.value)) {
+                    return SearchFilter.ALL;
+                } else if (value.contains(SearchFilter.TITLE.value)) {
+                    return SearchFilter.TITLE;
+                } else if (value.contains(SearchFilter.DIRECTOR.value)) {
+                    return SearchFilter.DIRECTOR;
+                }
+            }
+            throw new ValidationException("Параметр \"by\" некорректен");
+        }
+    }
+
     public FilmDbStorage(JdbcTemplate jdbc,
                          RowMapper<Film> mapper) {
         super(jdbc, mapper);
@@ -265,22 +290,19 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
 
     @Override
     public Collection<Film> searchFilms(String query, String by) {
-        String conditions;
-        boolean searchByTitle = by.contains("title");
-        boolean searchByDirector = by.contains("director");
-        List<String> params = new ArrayList<>();
+        String conditions = "";
         query = query.toLowerCase();
-
+        List<String> params = new ArrayList<>();
         params.add("%" + query + "%");
-        if (searchByTitle && searchByDirector) {
+        SearchFilter searchBy = SearchFilter.fromString(by);
+
+        if (searchBy == SearchFilter.ALL) {
             conditions = "WHERE LOWER(f.name) LIKE ? OR LOWER(d.name) LIKE ?\n";
             params.add("%" + query + "%");
-        } else if (searchByTitle) {
+        } else if (searchBy == SearchFilter.TITLE) {
             conditions = "WHERE LOWER(f.name) LIKE ?\n";
-        } else if (searchByDirector) {
+        } else if (searchBy == SearchFilter.DIRECTOR) {
             conditions = "WHERE LOWER(d.name) LIKE ?\n";
-        } else {
-            throw new ValidationException("Параметр \"by\" некорректен");
         }
 
         String findByQuery = """
