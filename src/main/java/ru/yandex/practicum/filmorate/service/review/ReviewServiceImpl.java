@@ -21,10 +21,11 @@ public class ReviewServiceImpl implements ReviewService {
     public Review saveReview(Review review) {
         reviewStorage.checkUserById(review.getUserId());
         reviewStorage.checkFilmById(review.getFilmId());
+        Review review1 = reviewStorage.save(review);
         feed.addEvent(getReviewById(review.getReviewId()).getUserId(),
                 EventType.REVIEW, DbOperation.ADD,
                 review.getReviewId());
-        return reviewStorage.save(review);
+        return review1;
     }
 
     @Override
@@ -39,9 +40,9 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     public void deleteReview(Integer id) {
-        reviewStorage.delete(id);
         int userId = getReviewById(id).getUserId();
         feed.addEvent(userId, EventType.REVIEW, DbOperation.REMOVE, id);
+        reviewStorage.delete(id);
     }
 
     @Override
