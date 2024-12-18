@@ -10,29 +10,22 @@ import ru.yandex.practicum.filmorate.mappers.ReviewRowMapper;
 import ru.yandex.practicum.filmorate.model.Review;
 import java.util.Collection;
 
-
 @Repository("reviewDbStorage")
 public class ReviewDbStorage extends BaseRepository<Review> implements ReviewStorage {
-
 
     private static final String FIND_VOTE_QUERY = "SELECT is_positive FROM review_likes " +
             "WHERE review_id = ? AND user_id = ?";
 
-
     private static final String ALL_REVIEWS = "SELECT * FROM reviews";
-
 
     private static final String INSERT_QUERY = "INSERT INTO reviews (content, type, user_id, film_id) " +
             "VALUES (?, ?, ?, ?)";
 
-
     private static final String UPDATE_QUERY = "UPDATE reviews SET content = ?, type = ? WHERE reviews_id = ?";
-
 
     public ReviewDbStorage(JdbcTemplate jdbc, RowMapper<Review> mapper) {
         super(jdbc, mapper);
     }
-
 
     @Override
     public Review save(Review review) {
@@ -47,7 +40,6 @@ public class ReviewDbStorage extends BaseRepository<Review> implements ReviewSto
         return getReviewById(review.getReviewId());
     }
 
-
     @Override
     public Review update(Review review) {
         update(
@@ -59,14 +51,12 @@ public class ReviewDbStorage extends BaseRepository<Review> implements ReviewSto
         return getReviewById(review.getReviewId());
     }
 
-
     @Override
     public void delete(Integer id) {
         String deleteFilmSql = "DELETE FROM reviews WHERE reviews_id = ?";
         int userId = getReviewById(id).getUserId();
         jdbc.update(deleteFilmSql, id);
     }
-
 
     @Override
     public Review getReviewById(Integer reviewId) {
@@ -79,7 +69,6 @@ public class ReviewDbStorage extends BaseRepository<Review> implements ReviewSto
         }
     }
 
-
     @Override
     public Collection<Review> getReviews(Integer filmId, Integer count) {
         String query;
@@ -90,7 +79,6 @@ public class ReviewDbStorage extends BaseRepository<Review> implements ReviewSto
         }
         return findMany(query);
     }
-
 
     @Override
     public void addLikeOrDislike(Integer reviewId, Integer userId, Boolean isLike) {
@@ -108,7 +96,6 @@ public class ReviewDbStorage extends BaseRepository<Review> implements ReviewSto
                     isLike ? 2 : -2, reviewId);
         }
     }
-
 
     @Override
     public void deleteLikeOrDislike(Integer reviewId, Integer userId) {
