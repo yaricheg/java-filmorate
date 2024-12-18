@@ -1,6 +1,5 @@
 package ru.yandex.practicum.filmorate.enums;
 
-import ru.yandex.practicum.filmorate.dal.film.FilmDbStorage;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 
 public enum SearchFilter {
