@@ -9,7 +9,6 @@ import ru.yandex.practicum.filmorate.dal.feed.FeedStorage;
 import ru.yandex.practicum.filmorate.enums.DbOperation;
 import ru.yandex.practicum.filmorate.enums.EventType;
 import ru.yandex.practicum.filmorate.model.Review;
-
 import java.util.Collection;
 
 @Service
@@ -21,18 +20,16 @@ public class ReviewServiceImpl implements ReviewService {
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
 
-
     @Override
     public Review saveReview(Review review) {
         userStorage.getUserById(review.getUserId());
         filmStorage.getFilmById(review.getFilmId());
-        Review review1 = reviewStorage.save(review);
+        Review savedReview = reviewStorage.save(review);
         feed.addEvent(getReviewById(review.getReviewId()).getUserId(),
                 EventType.REVIEW, DbOperation.ADD,
                 review.getReviewId());
-        return review1;
+        return savedReview;
     }
-
 
     @Override
     public Review updateReview(Review review) {
@@ -44,7 +41,6 @@ public class ReviewServiceImpl implements ReviewService {
         return reviewStorage.update(review);
     }
 
-
     @Override
     public void deleteReview(Integer id) {
         int userId = getReviewById(id).getUserId();
@@ -52,18 +48,15 @@ public class ReviewServiceImpl implements ReviewService {
         reviewStorage.delete(id);
     }
 
-
     @Override
     public Review getReviewById(Integer reviewId) {
         return reviewStorage.getReviewById(reviewId);
     }
 
-
     @Override
     public Collection<Review> getReviews(Integer filmId, Integer count) {
         return reviewStorage.getReviews(filmId, count);
     }
-
 
     @Override
     public void addLikeOrDislike(Integer reviewId, Integer userId, Boolean isLike) {
@@ -71,12 +64,10 @@ public class ReviewServiceImpl implements ReviewService {
         reviewStorage.addLikeOrDislike(reviewId, userId, isLike);
     }
 
-
     @Override
     public void deleteLikeOrDislike(Integer reviewId, Integer userId) {
         userStorage.getUserById(userId);
         reviewStorage.deleteLikeOrDislike(reviewId, userId);
     }
-
 }
 

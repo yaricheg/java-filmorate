@@ -1,13 +1,11 @@
 package ru.yandex.practicum.filmorate.controller;
 
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.ReviewChecker;
 import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.service.review.ReviewService;
-
 import java.util.Collection;
 
 @RequiredArgsConstructor
@@ -15,6 +13,7 @@ import java.util.Collection;
 @RequestMapping("/reviews")
 @Slf4j
 public class ReviewController {
+
     private final ReviewService reviewService;
 
     @PostMapping
@@ -50,7 +49,6 @@ public class ReviewController {
         return reviewService.getReviews(filmId, count);
     }
 
-
     @PutMapping("/{id}/{type}/{userId}")
     public void addLikeOrDislike(@PathVariable Integer id,
                                  @PathVariable String type,
@@ -61,7 +59,6 @@ public class ReviewController {
         reviewService.addLikeOrDislike(id, userId, isLike);
     }
 
-
     @DeleteMapping("/{id}/{type}/{userId}")
     public void deleteLikeOrDislike(@PathVariable Integer id,
                                     @PathVariable String type,
@@ -70,7 +67,6 @@ public class ReviewController {
                 type.equalsIgnoreCase("like") ? "лайка" : "дизлайка", id, userId);
         reviewService.deleteLikeOrDislike(id, userId);
     }
-
 
     private boolean parseType(String type) {
         if (type.equalsIgnoreCase("like")) {
