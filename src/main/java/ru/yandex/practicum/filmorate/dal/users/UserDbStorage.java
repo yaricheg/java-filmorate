@@ -7,7 +7,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.dal.feed.FeedStorage;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.UserNotFound;
 import ru.yandex.practicum.filmorate.mappers.EventRowMapper;
@@ -26,7 +25,6 @@ import java.util.*;
 public class UserDbStorage implements UserStorage {
 
     private final JdbcTemplate jdbcTemplate;
-    private final FeedStorage feed;
 
     private static final String ALL_USERS = "SELECT * FROM users";
 
@@ -87,7 +85,6 @@ public class UserDbStorage implements UserStorage {
             throw new UserNotFound("Пользователь с ID " + id + " не найден.");
         }
     }
-
 
     @Override
     public void addFriend(Integer userId, Integer friendId) {
