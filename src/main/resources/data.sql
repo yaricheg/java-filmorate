@@ -1,4 +1,3 @@
-
 MERGE INTO mpa AS target
 USING (
     VALUES ('G'), ('PG'), ('PG-13'), ('R'), ('NC-17')
@@ -18,3 +17,4 @@ WHEN MATCHED THEN
     UPDATE SET name = source.name
 WHEN NOT MATCHED THEN
     INSERT (name) VALUES (source.name);
+
