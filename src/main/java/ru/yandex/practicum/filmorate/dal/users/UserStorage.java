@@ -29,6 +29,4 @@ public interface UserStorage {
     User getUserById(Integer id);
 
     List<Film> getFilmRecommendationsForUser(int userId);
-
-   // Map<Integer, List<Genre>> getAllFilmGenres(Collection<Film> films);
 }
