@@ -8,6 +8,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.dal.BaseRepository;
+import ru.yandex.practicum.filmorate.enums.SearchFilter;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.mappers.DirectorRowMapper;
@@ -69,31 +70,6 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
             "WHERE fd.director_id = ? " +
             "GROUP BY f.id,  f.mpa_id,  mpa_name " +
             "ORDER BY likes_count DESC, f.id ";
-
-    private enum SearchFilter {
-        TITLE("title"),
-        DIRECTOR("director"),
-        ALL("title,director");
-
-        private String value;
-
-        private SearchFilter(String value) {
-            this.value = value;
-        }
-
-        public static SearchFilter fromString(String value) {
-            if (!value.isBlank()) {
-                if (value.contains(SearchFilter.TITLE.value) && value.contains(SearchFilter.DIRECTOR.value)) {
-                    return SearchFilter.ALL;
-                } else if (value.contains(SearchFilter.TITLE.value)) {
-                    return SearchFilter.TITLE;
-                } else if (value.contains(SearchFilter.DIRECTOR.value)) {
-                    return SearchFilter.DIRECTOR;
-                }
-            }
-            throw new ValidationException("Параметр \"by\" некорректен");
-        }
-    }
 
     public FilmDbStorage(JdbcTemplate jdbc,
                          RowMapper<Film> mapper) {
